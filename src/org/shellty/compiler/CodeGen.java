@@ -4,7 +4,7 @@ public class CodeGen {
     private String mResult = "";
 
     public void insertLine(String line) {
-        mResult += line + "\n";
+        mResult += "\n" + line;
     }
 
     public void insertLine() {

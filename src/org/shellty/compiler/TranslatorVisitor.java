@@ -1,6 +1,5 @@
 package org.shellty.compiler;
 
-import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.shellty.antlr.ShelltyBaseVisitor;
 import org.shellty.antlr.ShelltyParser;
@@ -23,14 +22,43 @@ class TranslatorVisitor extends ShelltyBaseVisitor<MetaType> {
 
     @Override
     public MetaType visitTerminal(TerminalNode terminal) {
-        /* Logger.getInstance().log(terminal.getSymbol().getText() + ":" */
-        /*         + terminal.getSymbol().getType()); */
         return null;
     }
 
     @Override
     public MetaType visitFunctionDefinition(ShelltyParser.FunctionDefinitionContext ctx) {
-        return visitChildren(ctx);
+        NodeType returnType = Utils.getType(ctx.typeDeclarator().getStart().getType(),
+                ctx.typeDeclarator().getText(), getSemanticTree());
+
+        Node retNode = getSemanticTree().functionInclude(ctx.Identifier().getText(), returnType);
+
+        codeGenerator.insertLine(String.format("function %s () {", ctx.Identifier().getText()));
+
+        if (ctx.parameterTypeList() != null) 
+            visit(ctx.parameterTypeList());
+
+        getSemanticTree().calcParametrCount(retNode);
+
+        visit(ctx.compoundStatement());
+        getSemanticTree().setCurrentNode(retNode);
+
+        codeGenerator.insertLine(String.format("}\n"));
+
+        return null;
+    }
+
+    @Override 
+    public MetaType visitParameterList(ShelltyParser.ParameterListContext ctx) {
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override
+    public MetaType visitParameterDeclaration(ShelltyParser.ParameterDeclarationContext ctx) {
+        NodeType paramType = Utils.getType(ctx.typeDeclarator().getStart().getType(), 
+                ctx.typeDeclarator().getText(), getSemanticTree());
+        getSemanticTree().varInclude(ctx.Identifier().getText(), paramType);
+        return null;
     }
 
     @Override
@@ -52,7 +80,7 @@ class TranslatorVisitor extends ShelltyBaseVisitor<MetaType> {
         /* Logger.getInstance().log(ctx.getChild(0).getClass()); */
         /* String toLog = ctx.typeSpecifier().getText() + " " + ctx.typeSpecifier().getStart().getType(); */
 
-        NodeType type = Utils.getType(ctx.typeSpecifier().getStop().getType(),
+        NodeType type = Utils.getType(ctx.typeSpecifier().getStart().getType(),
                 ctx.typeSpecifier().getText(), getSemanticTree());
 
         if (type != NodeType.INTEGER && type != NodeType.STRING) {
@@ -65,6 +93,7 @@ class TranslatorVisitor extends ShelltyBaseVisitor<MetaType> {
         return visit(ctx.structDeclaratorList());
         /* return visit(ctx.getChild(1)); */
     }
+
 
     @Override
     public MetaType visitStructDeclarator(ShelltyParser.StructDeclaratorContext ctx) {
@@ -83,7 +112,7 @@ class TranslatorVisitor extends ShelltyBaseVisitor<MetaType> {
         visit(ctx.enumeratorList());
 
         getSemanticTree().setCurrentNode(retNode);
-        codeGenerator.insertSymbols(")");
+        codeGenerator.insertLine(")\n");
 
         return null;
     }
@@ -101,7 +130,6 @@ class TranslatorVisitor extends ShelltyBaseVisitor<MetaType> {
 
     @Override
     public MetaType visitBashExtension(ShelltyParser.BashExtensionContext ctx) {
-        codeGenerator.insertLine();
         for (TerminalNode stringLiteral : ctx.StringLiteral()) {
             String insertion = stringLiteral.getSymbol().getText();
             insertion = insertion.replaceAll("\"", "");
@@ -119,9 +147,6 @@ class TranslatorVisitor extends ShelltyBaseVisitor<MetaType> {
         return semanticTree;
     }
 
-    /**
-     * @return the codeGenerator
-     */
     public CodeGen getCodeGenerator() {
         return codeGenerator;
     }

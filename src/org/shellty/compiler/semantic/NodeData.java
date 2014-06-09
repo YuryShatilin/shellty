@@ -20,9 +20,11 @@ public class NodeData {
     private String stringValue = "";
     private int intValue = -1;
     private boolean constValue = false;
+    private int countParams = -1;
 
     private NodeType mType = NodeType.EMPTY;
     private String lexem = "";
+    private NodeType returnType;
 
     public NodeData() {
     }
@@ -49,12 +51,34 @@ public class NodeData {
         return constValue;
     }
 
+    /**
+     * @return the countParams
+     */
+    public int getCountParams() {
+        return countParams;
+    }
+
+    /**
+     * @param countParams the countParams to set
+     */
+    public void setCountParams(int countParams) {
+        this.countParams = countParams;
+    }
+
     public String getLexem() {
         return lexem;
     }
 
     public void setLexem(String lexem) {
         this.lexem = lexem;
+    }
+
+    public NodeType getReturnType() {
+        return returnType;
+    }
+
+    public void setReturnType(NodeType returnType) {
+        this.returnType = returnType;
     }
 
     public NodeType getType() {
@@ -67,7 +91,7 @@ public class NodeData {
 
     @Override
     public String toString() {
-        return lexem + ": " + getType();
+        return lexem + ": " + getType() + ":p=" + getCountParams();
     }
 }
 

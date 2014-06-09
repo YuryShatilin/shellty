@@ -3,6 +3,8 @@ package org.shellty.compiler.semantic;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.List;
 
 import org.shellty.compiler.semantic.NodeData.NodeType;
 import org.shellty.utils.Logger;
@@ -42,9 +44,26 @@ public class Tree {
         mCurrentNode.setLeftNode(node);
 
         Node rightNode = Node.createEmptyNode();
+        rightNode.setParentNode(node);
         node.setRightNode(rightNode);
 
         mCurrentNode = rightNode;
+
+        return node;
+    }
+
+    public Node functionInclude(String functionName, NodeData.NodeType returnType) {
+        Node node = new Node(null, null, mCurrentNode);
+        mCurrentNode.setLeftNode(node);
+
+        node.getData().setType(NodeType.DEF_FUNC);
+        node.getData().setLexem(functionName);
+        node.getData().setReturnType(returnType);
+       
+        Node rightNode = Node.createEmptyNode();
+        rightNode.setParentNode(node);
+        node.setRightNode(rightNode);
+        mCurrentNode = rightNode; 
 
         return node;
     }
@@ -54,9 +73,25 @@ public class Tree {
         mCurrentNode.setLeftNode(node);
         node.getData().setLexem(varName);
         node.getData().setType(varType);
-
+        
         mCurrentNode = node;
         return true;
+    }
+
+    public void calcParametrCount(Node funcNode) {
+        Node curr = getCurrentNode();
+        List<NodeType> varTypes = Arrays.asList(new NodeType[] {
+                NodeType.COMPLEXVAR, NodeType.INTEGER, NodeType.STRING,
+                NodeType.ENUMVAR });
+        int countParams = 0;
+        while (varTypes.contains(curr.getData().getType())) {
+            countParams += 1;
+            curr = curr.getParentNode();
+        }
+
+        funcNode.getData().setCountParams(countParams);
+        /* while (curr.getData().getType() == NodeType.COMPLEXVAR && */
+        /* curr.getData().getType(). */
     }
 
     public boolean checkDuplicate(String name) {
