@@ -1,4 +1,4 @@
 shellty
 =======
 
-Shellty small typesafe language which translates to bash
+Typesafe programming language that compiles to bash
