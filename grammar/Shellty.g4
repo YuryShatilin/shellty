@@ -146,6 +146,13 @@ initDeclarator
     |   declarator '=' initializer
     ;
 
+typeDeclarator
+    : 'void'
+    | 'int'
+    | 'stirng'
+    | typedefName
+    ;
+
 typeSpecifier
     :   ('void'
     |   'int'
@@ -161,13 +168,12 @@ structDeclarationList
     ;
 
 structDeclaration
-    :   specifierQualifierList structDeclaratorList? ';'
+    :   typeSpecifier structDeclaratorList ';'
     ;
 
-
 specifierQualifierList
-    :   typeSpecifier specifierQualifierList?
-    |   typeQualifier specifierQualifierList?
+    :   typeSpecifier specifierQualifierList
+    |   typeQualifier specifierQualifierList
     ;
 
 structSpecifier
@@ -213,8 +219,8 @@ declarator
 directDeclarator
     :   Identifier
     |   Identifier '['']'
-    |   directDeclarator '(' parameterTypeList ')'
-    |   directDeclarator '(' identifierList? ')'
+    /* |   directDeclarator '(' parameterTypeList ')' */
+    /* |   directDeclarator '(' identifierList? ')' */
     ;
 
 
@@ -349,7 +355,8 @@ externalDeclaration
     ;
 
 functionDefinition
-    :   declarationSpecifiers? declarator declarationList? compoundStatement
+    :   typeDeclarator Identifier '(' parameterTypeList ')' compoundStatement 
+    /* :   declarationSpecifiers? declarator declarationList? compoundStatement */
     ;
 
 declarationList
