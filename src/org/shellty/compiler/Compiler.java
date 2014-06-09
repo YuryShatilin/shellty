@@ -49,7 +49,7 @@ public class Compiler {
 
         ParseTree tree = parser.compilationUnit();
         
-        TranslatorVisitor translator = new TranslatorVisitor();
+        Translator translator = new Translator();
         translator.visit(tree);
         translator.getSemanticTree().debugPrint();
 

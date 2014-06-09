@@ -18,6 +18,8 @@ public class Utils {
                 }
             }
         }
+        case 18:
+                 return NodeData.NodeType.VOID;
         default:
             return null;
         }

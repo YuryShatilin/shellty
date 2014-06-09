@@ -3,6 +3,7 @@ package org.shellty.compiler.semantic;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -68,13 +69,45 @@ public class Tree {
         return node;
     }
 
-    public boolean varInclude(String varName, NodeType varType) {
+    public Node varInclude(String varName, NodeType varType) {
         Node node = new Node(null, null, mCurrentNode);
         mCurrentNode.setLeftNode(node);
         node.getData().setLexem(varName);
         node.getData().setType(varType);
         
         mCurrentNode = node;
+        return node;
+    }
+
+    public boolean varInclude(String varName, int tokenType, String tokenText) {
+        if (!checkDuplicate(varName)) {
+            return false;
+        }
+        Logger.getInstance().log(varName);
+        Logger.getInstance().log(tokenType);
+        Logger.getInstance().log(tokenText);
+        switch (tokenType) {
+        case 14:
+            varInclude(varName, NodeData.NodeType.INTEGER);
+            break;
+        case 20:
+            varInclude(varName, NodeData.NodeType.STRING);
+        case 67: {
+            Node node = findUp(tokenText);
+            if (node != null) {
+                Node varNode = null;
+                if (node.getData().getType() == NodeData.NodeType.DEF_ENUM) {
+                    varNode = varInclude(varName, NodeType.ENUMVAR);
+                    varNode.setRightNode(node);
+                } else if (node.getData().getType() == NodeData.NodeType.DEF_STRUCT) {
+                    varNode = varInclude(varName, NodeType.COMPLEXVAR);
+                    varNode.setRightNode(node);
+                } 
+            }
+        }
+        default:
+            return false;
+        }
         return true;
     }
 
@@ -110,9 +143,11 @@ public class Tree {
     }
 
     public Node findUp(String name) {
+        Logger.getInstance().log("find  " + name);
         Node curr = getCurrentNode();
         while (curr != null) {
-            if (curr.getData().getLexem() == name) {
+            Logger.getInstance().log(curr.getData().getLexem());
+            if (curr.getData().getLexem().equals(name)) {
                 return curr;
             }
             curr = curr.getParentNode();
@@ -153,6 +188,16 @@ public class Tree {
         return node;
     }
 
+    public static List<Node> getFiledStruction(Node structNode) {
+        ArrayList<Node> fields = new ArrayList<>();
+        Node curr = structNode.getRightNode().getLeftNode();
+        while (curr != null) {
+            fields.add(curr);
+            curr = curr.getLeftNode();
+        }
+        return fields;
+    }
+
     public void debugPrint() {
         try {
             try(PrintStream ps = new PrintStream(new File("tree.out"))) {
@@ -182,7 +227,10 @@ public class Tree {
         stream.println("----------------");
 
         debugPrint(from.getLeftNode(), stream);
-        debugPrint(from.getRightNode(), stream);
+        if (from.getRightNode() != null && 
+            from.getRightNode().getParentNode() == from) {
+            debugPrint(from.getRightNode(), stream);
+        }
     }
 }
 

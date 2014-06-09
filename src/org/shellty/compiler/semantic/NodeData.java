@@ -21,6 +21,7 @@ public class NodeData {
     private int intValue = -1;
     private boolean constValue = false;
     private int countParams = -1;
+    private boolean arrayVar = false;
 
     private NodeType mType = NodeType.EMPTY;
     private String lexem = "";
@@ -63,6 +64,14 @@ public class NodeData {
      */
     public void setCountParams(int countParams) {
         this.countParams = countParams;
+    }
+
+    public boolean isArrayVar() {
+        return arrayVar;
+    }
+
+    public void setArrayVar(boolean arrayVar) {
+        this.arrayVar = arrayVar;
     }
 
     public String getLexem() {
