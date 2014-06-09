@@ -99,14 +99,19 @@ class TranslatorVisitor extends ShelltyBaseVisitor<MetaType> {
         return null;
     }
 
-
     @Override
-    public MetaType defaultResult() {
+    public MetaType visitBashExtension(ShelltyParser.BashExtensionContext ctx) {
+        codeGenerator.insertLine();
+        for (TerminalNode stringLiteral : ctx.StringLiteral()) {
+            String insertion = stringLiteral.getSymbol().getText();
+            insertion = insertion.replaceAll("\"", "");
+            codeGenerator.insertLine(insertion);
+        }
         return null;
     }
 
     @Override
-    public MetaType visitErrorNode(ErrorNode node) {
+    public MetaType defaultResult() {
         return null;
     }
 
