@@ -758,6 +758,19 @@ public class ShelltyBaseListener implements ShelltyListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterTypeName(@NotNull ShelltyParser.TypeNameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTypeName(@NotNull ShelltyParser.TypeNameContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterLogicalOrExpression(@NotNull ShelltyParser.LogicalOrExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -778,19 +791,6 @@ public class ShelltyBaseListener implements ShelltyListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitInclusiveOrExpression(@NotNull ShelltyParser.InclusiveOrExpressionContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterTypeName(@NotNull ShelltyParser.TypeNameContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitTypeName(@NotNull ShelltyParser.TypeNameContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -830,6 +830,19 @@ public class ShelltyBaseListener implements ShelltyListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitCastExpression(@NotNull ShelltyParser.CastExpressionContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterTypeDeclarator(@NotNull ShelltyParser.TypeDeclaratorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTypeDeclarator(@NotNull ShelltyParser.TypeDeclaratorContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

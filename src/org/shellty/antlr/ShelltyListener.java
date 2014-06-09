@@ -636,6 +636,17 @@ public interface ShelltyListener extends ParseTreeListener {
 	void exitLogicalAndExpression(@NotNull ShelltyParser.LogicalAndExpressionContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link ShelltyParser#typeName}.
+	 * @param ctx the parse tree
+	 */
+	void enterTypeName(@NotNull ShelltyParser.TypeNameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ShelltyParser#typeName}.
+	 * @param ctx the parse tree
+	 */
+	void exitTypeName(@NotNull ShelltyParser.TypeNameContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link ShelltyParser#logicalOrExpression}.
 	 * @param ctx the parse tree
 	 */
@@ -656,17 +667,6 @@ public interface ShelltyListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitInclusiveOrExpression(@NotNull ShelltyParser.InclusiveOrExpressionContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link ShelltyParser#typeName}.
-	 * @param ctx the parse tree
-	 */
-	void enterTypeName(@NotNull ShelltyParser.TypeNameContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link ShelltyParser#typeName}.
-	 * @param ctx the parse tree
-	 */
-	void exitTypeName(@NotNull ShelltyParser.TypeNameContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link ShelltyParser#equalityExpression}.
@@ -700,6 +700,17 @@ public interface ShelltyListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitCastExpression(@NotNull ShelltyParser.CastExpressionContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link ShelltyParser#typeDeclarator}.
+	 * @param ctx the parse tree
+	 */
+	void enterTypeDeclarator(@NotNull ShelltyParser.TypeDeclaratorContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ShelltyParser#typeDeclarator}.
+	 * @param ctx the parse tree
+	 */
+	void exitTypeDeclarator(@NotNull ShelltyParser.TypeDeclaratorContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link ShelltyParser#specifierQualifierList}.

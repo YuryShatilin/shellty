@@ -411,6 +411,13 @@ public interface ShelltyVisitor<T> extends ParseTreeVisitor<T> {
 	T visitLogicalAndExpression(@NotNull ShelltyParser.LogicalAndExpressionContext ctx);
 
 	/**
+	 * Visit a parse tree produced by {@link ShelltyParser#typeName}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTypeName(@NotNull ShelltyParser.TypeNameContext ctx);
+
+	/**
 	 * Visit a parse tree produced by {@link ShelltyParser#logicalOrExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -423,13 +430,6 @@ public interface ShelltyVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitInclusiveOrExpression(@NotNull ShelltyParser.InclusiveOrExpressionContext ctx);
-
-	/**
-	 * Visit a parse tree produced by {@link ShelltyParser#typeName}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitTypeName(@NotNull ShelltyParser.TypeNameContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link ShelltyParser#equalityExpression}.
@@ -451,6 +451,13 @@ public interface ShelltyVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitCastExpression(@NotNull ShelltyParser.CastExpressionContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link ShelltyParser#typeDeclarator}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTypeDeclarator(@NotNull ShelltyParser.TypeDeclaratorContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link ShelltyParser#specifierQualifierList}.

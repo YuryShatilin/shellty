@@ -147,9 +147,9 @@ initDeclarator
     ;
 
 typeDeclarator
-    : 'void'
+    : ('void'
     | 'int'
-    | 'stirng'
+    | 'string')
     | typedefName
     ;
 
@@ -219,8 +219,8 @@ declarator
 directDeclarator
     :   Identifier
     |   Identifier '['']'
-    /* |   directDeclarator '(' parameterTypeList ')' */
-    /* |   directDeclarator '(' identifierList? ')' */
+    |   directDeclarator '(' parameterTypeList ')'
+    |   directDeclarator '(' identifierList? ')'
     ;
 
 
@@ -243,8 +243,9 @@ parameterList
     ;
 
 parameterDeclaration
-    :   declarationSpecifiers declarator
-    |   declarationSpecifiers2 directAbstractDeclarator?
+    :   typeDeclarator Identifier
+    |   typeDeclarator Identifier'['']'
+    /* |   declarationSpecifiers2 directAbstractDeclarator? */
     ;
 
 identifierList
@@ -355,7 +356,7 @@ externalDeclaration
     ;
 
 functionDefinition
-    :   typeDeclarator Identifier '(' parameterTypeList ')' compoundStatement 
+    :   typeDeclarator Identifier '(' parameterTypeList? ')' compoundStatement 
     /* :   declarationSpecifiers? declarator declarationList? compoundStatement */
     ;
 
