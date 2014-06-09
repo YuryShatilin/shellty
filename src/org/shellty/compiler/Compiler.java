@@ -1,8 +1,10 @@
 package org.shellty.compiler;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.List;
 
 import org.shellty.antlr.*;
@@ -24,18 +26,21 @@ public class Compiler {
         this.inputFiles = inputFiles;
     }
 
-    public void launch() {
-        for (String filename : inputFiles) {
-            Logger.getInstance().log("Process file: " + filename);
-            try {
-                processFile(filename);
-            } catch (IOException ex) {
-                // TODO: resolve later
+    public void launch() throws FileNotFoundException {
+        try (PrintStream outStream = new PrintStream(new File(outputFile))) {
+            for (String filename : inputFiles) {
+                Logger.getInstance().log("Process file: " + filename);
+                try {
+                    String result = processFile(filename);
+                    outStream.println(result);
+                } catch (IOException ex) {
+                    // TODO: resolve later
+                }
             }
         }
     }
 
-    public void processFile(String filename) throws IOException {
+    public String processFile(String filename) throws IOException {
         ShelltyLexer lexer = new ShelltyLexer(new ANTLRInputStream(
                 new FileInputStream(filename)));
 
@@ -48,6 +53,8 @@ public class Compiler {
         translator.visit(tree);
         translator.getSemanticTree().debugPrint();
 
+        /* System.out.println(translator.getCodeGenerator().getResult()); */
+        return translator.getCodeGenerator().getResult();
         /* ParseTreeWalker walker = new ParseTreeWalker(); */
 
         /* Translator translator = new Translator(); */

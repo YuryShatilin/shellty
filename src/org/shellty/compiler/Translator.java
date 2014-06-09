@@ -36,7 +36,6 @@ class Translator extends ShelltyBaseListener {
 
     @Override
     public void enterExpression(@NotNull ShelltyParser.ExpressionContext ctx) {
-
     }
 
 }

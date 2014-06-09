@@ -7,8 +7,16 @@ public class CodeGen {
         mResult += line + "\n";
     }
 
+    public void insertLine() {
+        insertLine("");
+    }
+
     public void insertSymbols(String symbols) {
         mResult += symbols;
+    }
+
+    public void insertStringLiteral(String str) {
+        insertSymbols("\"" + str + "\"");
     }
 
     public String getResult() {

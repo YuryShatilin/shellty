@@ -31,7 +31,6 @@ public class Tree {
 
     public Node structInclude(String structName) {
         if (inStruct()) {
-            Logger.getInstance().log("ss");
             // TODO: generate error
             return null;
         }
@@ -50,12 +49,40 @@ public class Tree {
         return node;
     }
 
-    public void varInclude(String varName, NodeType varType) {
+    public boolean varInclude(String varName, NodeType varType) {
         Node node = new Node(null, null, mCurrentNode);
+        mCurrentNode.setLeftNode(node);
         node.getData().setLexem(varName);
         node.getData().setType(varType);
 
         mCurrentNode = node;
+        return true;
+    }
+
+    public boolean checkDuplicate(String name) {
+        Node curr = getCurrentNode();
+        while (curr != null) {
+            if (curr.getData().getLexem() == name) {
+                return false;
+            }
+            if (curr.getParentNode() != null
+                    && curr.getParentNode().getRightNode() == curr) {
+                break;
+            }
+            curr = curr.getParentNode();
+        }
+        return true;
+    }
+
+    public Node findUp(String name) {
+        Node curr = getCurrentNode();
+        while (curr != null) {
+            if (curr.getData().getLexem() == name) {
+                return curr;
+            }
+            curr = curr.getParentNode();
+        }
+        return curr;
     }
 
     private boolean inStruct() {
@@ -69,6 +96,26 @@ public class Tree {
         }
 
         return false;
+    }
+
+    public Node enumInclude(String enumName) {
+        if (inStruct()) {
+            // TODO: generate error
+            return null;
+        }
+
+        Node node = new Node(null, null, mCurrentNode);
+        node.getData().setType(NodeType.DEF_ENUM);
+        node.getData().setLexem(enumName);
+
+        mCurrentNode.setLeftNode(node);
+
+        Node rightNode = Node.createEmptyNode();
+        node.setRightNode(rightNode);
+
+        mCurrentNode = rightNode;
+
+        return node;
     }
 
     public void debugPrint() {

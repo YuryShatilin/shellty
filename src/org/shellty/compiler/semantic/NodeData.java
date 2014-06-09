@@ -11,6 +11,7 @@ public class NodeData {
         ENUMVAR,
         STRING,
         COMPLEXVAR,
+        VOID,
 
         UNKNOW,
         EMPTY
