@@ -120,7 +120,9 @@ constantExpression
     ;
 
 declaration
-    :   declarationSpecifiers initDeclaratorList? ';'
+    :   typeDeclarator initDeclaratorList? ';'
+    |   structSpecifier
+    |   enumSpecifier
     ;
 
 declarationSpecifiers
