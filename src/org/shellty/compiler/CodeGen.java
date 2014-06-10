@@ -5,6 +5,7 @@ import java.util.List;
 import org.shellty.compiler.semantic.Node;
 import org.shellty.compiler.semantic.NodeData.NodeType;
 import org.shellty.compiler.semantic.Tree;
+import org.shellty.utils.Logger;
 
 public class CodeGen {
     private String mResult = "";
@@ -38,42 +39,49 @@ public class CodeGen {
         mResult += indents() + symbols;
     }
 
-    public void insertVarDeclaration(String varName, Node varNode, String value) {
+    public void insertVarDeclaration(Node varNode) {
+        String varName = varNode.getData().getLexem();
+        Logger.getInstance().log(varNode.getData());
         if (varNode.getData().isArrayVar()) {
             insertLine("local -A " + varName);
             return;    
         }
-
+       
         switch (varNode.getData().getType()) {
         case COMPLEXVAR:
             break;
         case ENUMVAR:
         case STRING:
-            insertLine(String.format("local ", varName));
-            if (!value.isEmpty()) {
-                insertSymbols("=" + value);
+            insertLine(String.format("local %s", varName));
+            if (!varNode.getData().getValue().isEmpty()) {
+                insertSymbols("=" + varNode.getData().getValue());
             }
             return;
         case INTEGER:
-            insertLine(String.format("local -i ", varName));
-            if (!value.isEmpty()) {
-                insertSymbols("=" + value);
+            insertLine(String.format("local -i %s", varName));
+            if (!varNode.getData().getValue().isEmpty()) {
+                insertSymbols("=" + varNode.getData().getValue());
             }
             return;
         default:
-            // TODO: wtf ?!
             return;
         }
 
-        Node structNode = varNode.getRightNode().getParentNode();
+        Node structNode = varNode.getRightNode();
         if (structNode == null) {
             // TODO: generate exception
         }
 
-        List<Node> fields = Tree.getFiledStruction(structNode);
+        List<Node> fields = Tree.getFieldsStruction(structNode);
         String fieldsString = "";
         for (Node field : fields) {
-            fieldsString += String.format("[%s]%s", field.getData().getLexem() ,"") + " ";
+            fieldsString += String.format("[%s]", field.getData().getLexem());
+            if (!varNode.getData().getValue().isEmpty()) {
+                fieldsString += "="+varNode.getData().getValue();
+            } else {
+                fieldsString += "=\"\"";
+            }
+            fieldsString += " ";
         }
         insertLine("declare -a " + varName + "=(" + fieldsString + ")");
     }
@@ -84,13 +92,14 @@ public class CodeGen {
             insertLine(String.format(formatDeclare, "-a",
                         parametrNode.getData().getLexem(),
                         "(\"${!" + number_parameter + "}\")"));
-                          
+            return;                          
         }
+
         switch (parametrNode.getData().getType()) {
         case COMPLEXVAR:
-           insertLine("eval \"declare -A " + parametrNode.getData().getLexem() + "\""+
-                   "=${" + number_parameter + "#*=}");
-
+           insertLine("eval \"declare -A " + parametrNode.getData().getLexem() + 
+                   "=\"${" + number_parameter + "#*=}");
+            return;
         case INTEGER:
             insertLine(String.format(formatDeclare, "-i",
                         parametrNode.getData().getLexem(), 
@@ -103,10 +112,7 @@ public class CodeGen {
                         "$" + number_parameter));
             return;
         default:
-            return;
         }
-
-/* #     eval "declare -A func_assoc_array="${1#*=}  */
     }
 
     public void insertStringLiteral(String str) {

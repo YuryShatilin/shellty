@@ -79,19 +79,18 @@ public class Tree {
         return node;
     }
 
-    public boolean varInclude(String varName, int tokenType, String tokenText) {
-        if (!checkDuplicate(varName)) {
-            return false;
+    public Node varInclude(String varName, int tokenType, String tokenText) {
+        if (!varName.isEmpty() && !checkDuplicate(varName)) {
+            return null;
         }
         Logger.getInstance().log(varName);
         Logger.getInstance().log(tokenType);
         Logger.getInstance().log(tokenText);
         switch (tokenType) {
         case 14:
-            varInclude(varName, NodeData.NodeType.INTEGER);
-            break;
+            return varInclude(varName, NodeData.NodeType.INTEGER);
         case 20:
-            varInclude(varName, NodeData.NodeType.STRING);
+            return varInclude(varName, NodeData.NodeType.STRING);
         case 67: {
             Node node = findUp(tokenText);
             if (node != null) {
@@ -103,12 +102,12 @@ public class Tree {
                     varNode = varInclude(varName, NodeType.COMPLEXVAR);
                     varNode.setRightNode(node);
                 } 
+                return varNode;
             }
         }
         default:
-            return false;
+            return null;
         }
-        return true;
     }
 
     public void calcParametrCount(Node funcNode) {
@@ -188,8 +187,9 @@ public class Tree {
         return node;
     }
 
-    public static List<Node> getFiledStruction(Node structNode) {
+    public static List<Node> getFieldsStruction(Node structNode) {
         ArrayList<Node> fields = new ArrayList<>();
+        Logger.getInstance().log(structNode.getRightNode().getData().getLexem());
         Node curr = structNode.getRightNode().getLeftNode();
         while (curr != null) {
             fields.add(curr);

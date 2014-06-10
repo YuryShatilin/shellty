@@ -17,9 +17,8 @@ public class NodeData {
         EMPTY
     }
 
-    private String stringValue = "";
-    private int intValue = -1;
-    private boolean constValue = false;
+    private String value = "";
+
     private int countParams = -1;
     private boolean arrayVar = false;
 
@@ -30,38 +29,18 @@ public class NodeData {
     public NodeData() {
     }
 
-    public String getStringValue() {
-        return stringValue;
+    public String getValue() {
+        return value;
     }
 
-    public void setStringValue(String stringValue) {
-        constValue = true;
-        this.stringValue = stringValue;
+    public void setValue(String value) {
+        this.value = value;
     }
 
-    public int getIntValue() {
-        return intValue;
-    }
-
-    public void setIntValue(int intValue) {
-        constValue = true;
-        this.intValue = intValue;
-    }
-
-    public boolean isConstValue() {
-        return constValue;
-    }
-
-    /**
-     * @return the countParams
-     */
     public int getCountParams() {
         return countParams;
     }
 
-    /**
-     * @param countParams the countParams to set
-     */
     public void setCountParams(int countParams) {
         this.countParams = countParams;
     }
@@ -100,7 +79,20 @@ public class NodeData {
 
     @Override
     public String toString() {
-        return lexem + ": " + getType() + ":p=" + getCountParams();
+        return lexem + ": " + getType() + ":p=" + getCountParams() + ":a=" + isArrayVar();
+    }
+
+    public NodeData clone() {
+        NodeData newData = new NodeData();
+
+        newData.setType(getType());
+        newData.setReturnType(getReturnType());
+        newData.setCountParams(getCountParams());
+        newData.setArrayVar(isArrayVar());
+        newData.setLexem(getLexem());
+        newData.setValue(getValue());
+
+        return newData;
     }
 }
 
