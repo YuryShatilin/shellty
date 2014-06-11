@@ -36,7 +36,8 @@ unaryOperator
 
 castExpression
     :   unaryExpression
-    |   '(' typeName ')' castExpression
+    |   '(' 'string' ')' castExpression 
+    |   '(' 'int' ')' castExpression
     ;
 
 multiplicativeExpression
@@ -112,7 +113,6 @@ assignmentOperator
 
 expression
     :   assignmentExpression
-    |   expression ',' assignmentExpression
     ;
 
 constantExpression
