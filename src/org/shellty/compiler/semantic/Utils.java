@@ -1,5 +1,8 @@
 package org.shellty.compiler.semantic;
 
+import org.shellty.compiler.semantic.NodeData.NodeType;
+import org.shellty.compiler.semantic.Meta.*;
+
 public class Utils {
     public static NodeData.NodeType getType(int tokenType, String tokenName,
             Tree semanticTree) {
@@ -23,5 +26,22 @@ public class Utils {
         default:
             return null;
         }
+    }
+
+
+    public static BasicMetaType toMetaType(NodeType type) {
+        switch (type) {
+        case ENUMVAR:
+            return new EnumType();
+        case INTEGER:
+            return new IntegerType();
+        case STRING:
+            return new StringType();
+        case VOID:
+            return new VoidType();
+        default:
+            break;
+        }
+        return null;
     }
 }

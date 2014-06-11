@@ -189,10 +189,12 @@ public class Tree {
 
     public static List<Node> getFieldsStruction(Node structNode) {
         ArrayList<Node> fields = new ArrayList<>();
-        Logger.getInstance().log(structNode.getRightNode().getData().getLexem());
+        Logger.getInstance().log(structNode.getData().getLexem());
+        /* Logger.getInstance().log(structNode.getRightNode().getData().getLexem()); */
         Node curr = structNode.getRightNode().getLeftNode();
         while (curr != null) {
             fields.add(curr);
+            Logger.getInstance().log(curr.getData());
             curr = curr.getLeftNode();
         }
         return fields;
