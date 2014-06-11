@@ -2,6 +2,9 @@ grammar Shellty;
 
 primaryExpression
     :   Identifier
+    |   Identifier '[' expression ']'
+    |   Identifier '(' argumentExpressionList? ')'
+    |   Identifier '.' Identifier
     |   Constant
     |   StringLiteral+
     |   '(' expression ')'
@@ -9,13 +12,8 @@ primaryExpression
 
 postfixExpression
     :   primaryExpression
-    |   postfixExpression '[' expression ']'
-    |   postfixExpression '(' argumentExpressionList? ')'
-    |   postfixExpression '.' Identifier
     |   postfixExpression '++'
     |   postfixExpression '--'
-    |   '(' typeName ')' '{' initializerList '}'
-    |   '(' typeName ')' '{' initializerList ',' '}'
     ;
 
 argumentExpressionList
