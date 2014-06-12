@@ -108,12 +108,12 @@ assignmentExpression
 leftValueAssigment
     :   Identifier
     |   Identifier '[' expression ']'
-    |   Identifier '(' argumentExpressionList? ')'
     |   Identifier '.' Identifier
     ;
 
 assignmentOperator
-    :   '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '<<=' | '>>=' | '&=' | '^=' | '|='
+    :   '='
+    /* :   '=' | '*=' | '/=' | '%=' | '+=' | '-=' | '<<=' | '>>=' | '&=' | '^=' | '|=' */
     ;
 
 expression
@@ -483,8 +483,8 @@ HexQuad
 
 Constant
     :   IntegerConstant
-    //|   EnumerationConstant
-    |   CharacterConstant
+    /* //|   EnumerationConstant */
+    /* |   CharacterConstant */
     ;
 
 fragment
@@ -657,15 +657,7 @@ HexadecimalEscapeSequence
     ;
 
 StringLiteral
-    :   EncodingPrefix? '"' SCharSequence? '"'
-    ;
-
-fragment
-EncodingPrefix
-    :   'u8'
-    |   'u'
-    |   'U'
-    |   'L'
+    :   '"' SCharSequence? '"'
     ;
 
 fragment
