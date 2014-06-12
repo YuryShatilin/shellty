@@ -17,8 +17,8 @@ postfixExpression
     ;
 
 argumentExpressionList
-    :   assignmentExpression
-    |   argumentExpressionList ',' assignmentExpression
+    :   conditionalExpression
+    |   argumentExpressionList ',' conditionalExpression
     ;
 
 unaryExpression
