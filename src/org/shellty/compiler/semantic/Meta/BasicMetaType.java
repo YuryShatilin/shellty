@@ -1,6 +1,6 @@
 package org.shellty.compiler.semantic.Meta;
 
-public class BasicMetaType {
+public abstract class BasicMetaType {
     private String value = "";
 
     public BasicMetaType(String value) {

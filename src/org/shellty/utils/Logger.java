@@ -1,7 +1,6 @@
 package org.shellty.utils;
 
 import java.io.PrintStream;
-import java.util.Arrays;
 
 public class Logger {
 
@@ -15,6 +14,9 @@ public class Logger {
         mStream = stream;
     }
     
+    private Logger() {
+    }
+
     private PrintStream mStream = System.out;
     private boolean mLocked = true;
     private int mCount = 0;
