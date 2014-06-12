@@ -233,8 +233,38 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     }
 
     private Node functionNode;
-    private int argCount;
+    private int argCount = 0;
     // Expressions
+    //
+    public BasicMetaType visitArgumentExpressionList(ShelltyParser.ArgumentExpressionListContext ctx) {
+        if (functionNode != null && argCount > functionNode.getData().getCountParams()) {
+            // TODO: mismatch functions arguments 
+            Logger.getInstance().log("error");
+            return null;
+        }
+
+        BasicMetaType argument = visit(ctx.conditionalExpression());
+        Logger.getInstance().log(argument.getValue());
+        if (functionNode != null) {
+            Node parametrNode = getSemanticTree().getParametr(functionNode, argCount);
+            Logger.getInstance().log(parametrNode.getData().getLexem());
+            BasicMetaType parametr = Utils.toMetaType(parametrNode.getData().getType());
+            if (!argument.equals(parametr) && 
+                    !(parametrNode.getData().getType() == NodeType.INTEGER 
+                    && argument instanceof BoolType)) {
+                // TODO: mismathc argument function 
+                Logger.getInstance().log("error 2");
+                return null;
+            }
+        }
+
+        argCount += 1;
+        if (ctx.argumentExpressionList() != null) {
+            argument.setValue(argument.getValue() + " " + visit(ctx.argumentExpressionList()).getValue());
+        }
+        Logger.getInstance().log(argument.getValue());
+        return argument;
+    }
 
     @Override
     public BasicMetaType visitPrimaryExpression(ShelltyParser.PrimaryExpressionContext ctx) {
@@ -250,20 +280,33 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             Node targetNode = getSemanticTree().findUp(name);
             switch (terminal.getSymbol().getType()) {
                 case 21:{ // =( call function 
+                    Node saveFunctionNode = functionNode;
                     functionNode = targetNode;
                     if (functionNode == null) {
                         Logger.getInstance().log("external function");
                     }
+                    int saveArgCount = argCount;
                     argCount = 0;
                     BasicMetaType argResult = visit(ctx.argumentExpressionList());
+                    argCount = saveArgCount;
                     /* codeGenerator.insertSymbols("$(" + name); */
                     if (functionNode != null
-                            && functionNode.getData().getCountParams() != argCount) {
+                            && functionNode.getData().getCountParams() != argCount+1) {
                         // TODO: arguments count mismatch
+                        return null;
                     }
                     /* codeGenerator.insertSymbols(")"); */
-                    BasicMetaType retType = Utils.toMetaType(functionNode.getData().getReturnType());
+                    BasicMetaType retType;
+                    if (functionNode != null) {
+                        retType= Utils.toMetaType(functionNode.getData().getReturnType());
+                    } else {
+                        retType = new StringType();
+                    }
                     retType.setValue("$(" + name + " " + argResult.getValue() + ")");
+                    Logger.getInstance().log(retType.getValue());
+
+                    functionNode = saveFunctionNode;
+
                     return retType;
                 }
                 case 23:{ // element array

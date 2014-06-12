@@ -208,6 +208,18 @@ public class Tree {
         return curr;
     }
 
+    public Node getParametr(Node funcNode, int position) {
+        if (position > funcNode.getData().getCountParams()) {
+            return null;
+        }
+        Node curr = funcNode.getRightNode().getLeftNode();
+        int i = 0;
+        while (i < position && curr != null) {
+            curr = curr.getLeftNode();
+        }
+        return curr;
+    }
+
     public void debugPrint() {
         try {
             try(PrintStream ps = new PrintStream(new File("tree.out"))) {
