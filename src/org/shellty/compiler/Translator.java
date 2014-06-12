@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.shellty.antlr.ShelltyBaseVisitor;
 import org.shellty.antlr.ShelltyParser;
 import org.shellty.compiler.semantic.Meta.BasicMetaType;
+import org.shellty.compiler.semantic.Meta.BoolType;
 import org.shellty.compiler.semantic.Meta.ComplexType;
 import org.shellty.compiler.semantic.Meta.EnumType;
 import org.shellty.compiler.semantic.Meta.IntegerType;
@@ -213,6 +214,24 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         return null;
     }
 
+
+    @Override
+    public BasicMetaType visitExpressionStatement(ShelltyParser.ExpressionStatementContext ctx) {
+        codeGenerator.insertLine();
+        /* BasicMetaType result = visitChildren(ctx); */
+        if (ctx.expression() != null) {
+            BasicMetaType result = visit(ctx.expression());
+            codeGenerator.insertLine(result.getValue());
+            return result;
+        }
+        return null;
+    }
+
+    @Override
+    public BasicMetaType visitExpression(ShelltyParser.ExpressionContext ctx) {
+        return visit(ctx.assignmentExpression());
+    }
+
     private Node functionNode;
     private int argCount;
     // Expressions
@@ -230,32 +249,162 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             String name = ctx.Identifier(0).getText();
             Node targetNode = getSemanticTree().findUp(name);
             switch (terminal.getSymbol().getType()) {
-                case 21: // =( call function 
+                case 21:{ // =( call function 
                     functionNode = targetNode;
                     if (functionNode == null) {
                         Logger.getInstance().log("external function");
                     }
                     argCount = 0;
-                    visit(ctx.argumentExpressionList());
-                    codeGenerator.insertSymbols("$(" + name);
+                    BasicMetaType argResult = visit(ctx.argumentExpressionList());
+                    /* codeGenerator.insertSymbols("$(" + name); */
                     if (functionNode != null
                             && functionNode.getData().getCountParams() != argCount) {
                         // TODO: arguments count mismatch
                     }
-                    codeGenerator.insertSymbols(")");
-                    return Utils.toMetaType(functionNode.getData().getReturnType());
-                case 23: // element array
+                    /* codeGenerator.insertSymbols(")"); */
+                    BasicMetaType retType = Utils.toMetaType(functionNode.getData().getReturnType());
+                    retType.setValue("$(" + name + " " + argResult.getValue() + ")");
+                    return retType;
+                }
+                case 23:{ // element array
                     if (targetNode == null) {
                         // TODO: error not found var
                     }
                     if (!targetNode.getData().isArrayVar()) {
                         // TODO: var is not array
                     }
-                    codeGenerator.insertSymbols("${" + name +"[");
-                    visit(ctx.expression());
-                    codeGenerator.insertSymbols("]}");
-                    return Utils.toMetaType(targetNode.getData().getType());
-                case 65: // struct field
+                    /* codeGenerator.insertSymbols("${" + name +"["); */
+                    BasicMetaType index = visit(ctx.expression());
+                    /* codeGenerator.insertSymbols("]}"); */
+                    BasicMetaType retType = Utils.toMetaType(targetNode.getData().getType());
+                    retType.setValue("${" + name + "[" + index.getValue() + "]}");
+                    return retType;
+                }
+                case 65:{ // struct field
+                    if (targetNode == null) {
+                        // TODO: error not found var
+                    }
+                    if (targetNode.getData().getType() == NodeType.COMPLEXVAR) {
+                        // TODO: var is not array
+                    }
+                    String fieldName = ctx.Identifier(1).getText();
+                    Logger.getInstance().log(fieldName);
+                    List<Node> fields = Tree.getFieldsStruction(targetNode.getRightNode());
+                    Node varNode = null;
+                    for (Node field : fields) {
+                        Logger.getInstance().log(field.getData().getLexem());
+                        if (field.getData().getLexem().equals(fieldName)) {
+                            varNode = field;
+                            break;
+                        }
+                    }
+                    if (varNode == null) {
+                        // TODO: field not found 
+                        return null;
+                    }
+                    /* codeGenerator.insertSymbols("${" + name + "[" + fieldName + "]}"); */
+                    BasicMetaType retType = Utils.toMetaType(varNode.getData().getType());
+                    retType.setValue("${" + name + "[" + fieldName + "]}");
+                    return retType;
+                }
+            }
+        } else if (ctx.Identifier(0) != null) {
+            Node varNode = getSemanticTree().findUp(ctx.Identifier(0).getText());
+            if (varNode == null) {
+                // TODO: undefined var
+            }
+            /* codeGenerator.insertSymbols("${" + varNode.getData().getLexem() + "}"); */
+            BasicMetaType retType = Utils.toMetaType(varNode.getData().getType());
+            retType.setValue("${" + varNode.getData().getLexem() + "}");
+            return retType;
+        }
+
+        if (ctx.Constant() != null) {
+            String value = ctx.Constant().getText();
+            return new IntegerType(value);
+        }
+
+        if (ctx.StringLiteral() != null) {
+            String value = "";
+            Logger.getInstance().log("String literal");
+            for (TerminalNode literal : ctx.StringLiteral()) {
+                value += literal.getText().replaceAll("\"","");
+            }
+            value = "\"" + value + "\"";
+            return new StringType(value);
+        }
+
+
+        Logger.getInstance().log("error - " + ctx.getText());
+
+        return null;
+    }
+
+    @Override
+    public BasicMetaType visitCastExpression(ShelltyParser.CastExpressionContext ctx) {
+        Logger.getInstance().log(null);
+        if (ctx.castExpression() != null) {
+            TerminalNode terminal = (TerminalNode)ctx.getChild(1);
+            BasicMetaType rightType = visit(ctx.castExpression());
+            if (rightType instanceof ComplexType) {
+                // TODO: error cast
+                return null;
+            }
+            if (rightType instanceof EnumType) {
+                // TODO: error cast
+                return null;
+            }
+            if (terminal.getSymbol().getType() == 14) {
+                return new IntegerType(rightType.getValue());
+            } else {
+                return new StringType(rightType.getValue());
+            }
+        }
+        return visit(ctx.unaryExpression());
+    }
+
+    @Override
+    public BasicMetaType visitAssignmentExpression(ShelltyParser.AssignmentExpressionContext ctx) {
+        /* assignmentExpression */
+        /*     :   conditionalExpression */
+        /*     |   leftValueAssigment assignmentOperator conditionalExpression */
+        Logger.getInstance().log(null);
+        if (ctx.leftValueAssigment() == null) {
+            return visit(ctx.conditionalExpression());
+        }
+        BasicMetaType left = visit(ctx.leftValueAssigment());
+        BasicMetaType right = visit(ctx.conditionalExpression());
+        if (!left.equals(right)) {
+            // TODO: get erorr
+            return null;
+        }
+        left.setValue(left.getValue() + "=" + right.getValue());
+        return left;
+    }
+
+    @Override
+    public BasicMetaType visitLeftValueAssigment(ShelltyParser.LeftValueAssigmentContext ctx) {
+        Logger.getInstance().log(null);
+        if (ctx.getChild(1) instanceof TerminalNode) {
+            TerminalNode terminal = (TerminalNode)ctx.getChild(1);            
+            String name = ctx.Identifier(0).getText();
+            Node targetNode = getSemanticTree().findUp(name);
+            switch (terminal.getSymbol().getType()) {
+                case 23:{ // element array
+                    if (targetNode == null) {
+                        // TODO: error not found var
+                    }
+                    if (!targetNode.getData().isArrayVar()) {
+                        // TODO: var is not array
+                    }
+                    /* codeGenerator.insertSymbols("${" + name +"["); */
+                    BasicMetaType index = visit(ctx.expression());
+                    /* codeGenerator.insertSymbols("]}"); */
+                    BasicMetaType retType = Utils.toMetaType(targetNode.getData().getType());
+                    retType.setValue(name + "[" + index.getValue() + "]");
+                    return retType;
+                }
+                case 65:{ // struct field
                     if (targetNode == null) {
                         // TODO: error not found var
                     }
@@ -276,121 +425,269 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                     if (varNode == null) {
                         // TODO: field not found 
                     }
-                    codeGenerator.insertSymbols("${" + name + "[" + fieldName + "]}");
-                    return Utils.toMetaType(varNode.getData().getType());
+                    /* codeGenerator.insertSymbols("${" + name + "[" + fieldName + "]}"); */
+                    BasicMetaType retType = Utils.toMetaType(varNode.getData().getType());
+                    retType.setValue(name + "[" + fieldName + "]");
+                    return retType;
+                }
             }
         } else if (ctx.Identifier(0) != null) {
             Node varNode = getSemanticTree().findUp(ctx.Identifier(0).getText());
             if (varNode == null) {
                 // TODO: undefined var
             }
-            codeGenerator.insertSymbols("${" + varNode.getData().getLexem() + "}");
-            return Utils.toMetaType(varNode.getData().getType());
+            /* codeGenerator.insertSymbols("${" + varNode.getData().getLexem() + "}"); */
+            BasicMetaType retType = Utils.toMetaType(varNode.getData().getType());
+            retType.setValue(varNode.getData().getLexem());
+            return retType;
         }
-
-        // TODO: generate code
-
-        if (ctx.StringLiteral() != null) {
-            String value = ctx.getText().replaceAll("\"","");
-            return new StringType(value);
-        }
-
-        if (ctx.Constant() != null) {
-            String value = ctx.Constant().getText();
-            return new IntegerType(value);
-        }
-
+        
+        // never, but compiler get error =(
         return null;
     }
-
-
-    @Override
-    public BasicMetaType visitCastExpression(ShelltyParser.CastExpressionContext ctx) {
-        if (ctx.castExpression() != null) {
-            TerminalNode terminal = (TerminalNode)ctx.getChild(1);
-            BasicMetaType rightType = visit(ctx.castExpression());
-            if (terminal.getSymbol().getType() == 14) {
-                return new IntegerType(rightType.getValue());
-            } else {
-                return new StringType(rightType.getValue());
-            }
-        }
-        return visit(ctx.unaryExpression());
-    }
-
-    @Override
-    public BasicMetaType visitAssignmentExpression(ShelltyParser.AssignmentExpressionContext ctx) {
-        return visitChildren(ctx);
-    }
-
+    
     @Override
     public BasicMetaType visitConditionalExpression(ShelltyParser.ConditionalExpressionContext ctx) {
-        return visitChildren(ctx);
+        Logger.getInstance().log(null);
+        return visit(ctx.logicalOrExpression());
     }
 
     @Override
     public BasicMetaType visitLogicalOrExpression(ShelltyParser.LogicalOrExpressionContext ctx) {
-        return visitChildren(ctx);
+        Logger.getInstance().log(null);
+        if (ctx.logicalOrExpression() == null) {
+            return visit(ctx.logicalAndExpression());
+        } else {
+            BasicMetaType left = visit(ctx.logicalOrExpression());
+            BasicMetaType right = visit(ctx.logicalAndExpression());
+            if (left.equals(right) && left instanceof BoolType) {
+                return new BoolType(left.getValue() + " || " + right.getValue());
+            } else {
+                // TODO: not boolean value
+                return null;
+            }
+        }
     }
 
     @Override
     public BasicMetaType visitLogicalAndExpression(ShelltyParser.LogicalAndExpressionContext ctx) {
-        return visitChildren(ctx);
+        Logger.getInstance().log(null);
+        if (ctx.logicalAndExpression() == null) {
+            return visit(ctx.inclusiveOrExpression());
+        }
+        BasicMetaType right = visit(ctx.inclusiveOrExpression());
+        BasicMetaType left = visit(ctx.logicalAndExpression());
+        if (left.equals(right) && left instanceof BoolType) {
+            return new BoolType(left.getValue() + " && " + right.getValue());
+        } else {
+            // TODO: not boolean value
+            return null;
+        }
     }
 
     @Override
     public BasicMetaType visitInclusiveOrExpression(ShelltyParser.InclusiveOrExpressionContext ctx) {
-        return visitChildren(ctx);
+        Logger.getInstance().log(null);
+        if (ctx.inclusiveOrExpression() == null) {
+            return visit(ctx.exclusiveOrExpression());
+        }
+        BasicMetaType left = visit(ctx.inclusiveOrExpression());
+        BasicMetaType right = visit(ctx.exclusiveOrExpression());
+        if (left.equals(right) && left instanceof IntegerType) {
+            return new IntegerType(left.getValue() + " | " + right.getValue());
+        } else {
+            // TODO: not integer value
+            return null;
+        }
     }
 
     @Override
     public BasicMetaType visitExclusiveOrExpression(ShelltyParser.ExclusiveOrExpressionContext ctx) {
-        return visitChildren(ctx);
+        Logger.getInstance().log(null);
+        if (ctx.exclusiveOrExpression() == null) {
+            return visit(ctx.andExpression());
+        }
+        BasicMetaType left = visit(ctx.exclusiveOrExpression());
+        BasicMetaType right = visit(ctx.andExpression());
+        if (left.equals(right) && left instanceof IntegerType) {
+            return new IntegerType(left.getValue() + " ^ " + right.getValue());
+        } else {
+            // TODO: not integer value
+            return null;
+        }
     }
 
     @Override
     public BasicMetaType visitAndExpression(ShelltyParser.AndExpressionContext ctx) {
-        return visitChildren(ctx);
+        Logger.getInstance().log(null);
+        if (ctx.andExpression() == null) {
+            return visit(ctx.equalityExpression());
+        }
+        BasicMetaType left = visit(ctx.andExpression());
+        BasicMetaType right = visit(ctx.equalityExpression());
+        if (left.equals(right) && left instanceof IntegerType) {
+            return new IntegerType(left.getValue() + " & " + right.getValue());
+        } else {
+            // TODO: not integer value
+            return null;
+        }
     }
 
     @Override
     public BasicMetaType visitEqualityExpression(ShelltyParser.EqualityExpressionContext ctx) {
-        return visitChildren(ctx);
+        Logger.getInstance().log(null);
+        if (ctx.equalityExpression() == null) {
+            return visit(ctx.relationalExpression());
+        }
+        BasicMetaType left = visit(ctx.equalityExpression());
+        BasicMetaType right = visit(ctx.relationalExpression());
+        if (!left.equals(right)) {
+            // TODO: invalid equality 
+            return null;
+        }
+        int terminalType = ((TerminalNode)ctx.getChild(1)).getSymbol().getType(); // 62 63 !=
+        if (left instanceof StringType && left instanceof EnumType) {
+            if (terminalType == 62) {
+                return new BoolType("$(" + left.getValue() + " -eq "
+                        + right.getValue() + ")");
+            } else {
+                return new BoolType("$(" + left.getValue() + " -ne "
+                        + right.getValue() + ")");
+            }
+        } else if (left instanceof IntegerType) {
+            if (terminalType == 62) {
+                return new BoolType("$((" + left.getValue() + "=="
+                        + right.getValue() + "))");
+            } else {
+                return new BoolType("$((" + left.getValue() + "!="
+                        + right.getValue() + "))");
+            }
+        } else {
+            // TODO: invalid equality
+            return null;
+        }
     }
 
     @Override
     public BasicMetaType visitRelationalExpression(ShelltyParser.RelationalExpressionContext ctx) {
-        return visitChildren(ctx);
+        Logger.getInstance().log(null);
+        if (ctx.relationalExpression() == null) {
+            return visit(ctx.shiftExpression());
+        }
+        BasicMetaType left = visit(ctx.relationalExpression());
+        BasicMetaType right = visit(ctx.shiftExpression());
+        if (!left.equals(right) || !(left instanceof IntegerType)){
+            // TODO: not valide relation operation
+            return null;
+        }
+        return new BoolType("$((" + left.getValue() + ctx.getChild(1).getText() + right.getValue() + "))");
     }
 
     @Override
     public BasicMetaType visitShiftExpression(ShelltyParser.ShiftExpressionContext ctx) {
-        return visitChildren(ctx);
+        Logger.getInstance().log(null);
+        if (ctx.shiftExpression() == null) {
+            return visit(ctx.additiveExpression());
+        }
+        BasicMetaType left = visit(ctx.shiftExpression());
+        BasicMetaType right = visit(ctx.additiveExpression());
+        if (!left.equals(right) || !(left instanceof IntegerType)){
+            // TODO: not valide relation operation
+            return null;
+        }
+        return new IntegerType("$((" + left.getValue() + ctx.getChild(1).getText() + right.getValue() + "))");
     }
 
     @Override
     public BasicMetaType visitAdditiveExpression(ShelltyParser.AdditiveExpressionContext ctx) {
-        return visitChildren(ctx);
+        Logger.getInstance().log(null);
+        if (ctx.additiveExpression() != null) {
+            int typeOperation = ((TerminalNode) ctx.getChild(1)).getSymbol().getType();
+            BasicMetaType leftOperand = visit(ctx.additiveExpression());
+            BasicMetaType rightOperand = visit(ctx.multiplicativeExpression());
+
+            Logger.getInstance().log(leftOperand);
+            Logger.getInstance().log(rightOperand);
+            Logger.getInstance().log(rightOperand.getValue());
+            if (!leftOperand.equals(rightOperand)) {
+                // TODO: not legal operation
+                Logger.getInstance().log("error");
+                return null;
+            }
+
+            BasicMetaType retType = null;
+
+            if (leftOperand instanceof IntegerType) {
+                retType = new IntegerType();
+                if (typeOperation == 33) {
+                    retType.setValue("$((" + leftOperand.getValue() + "+" + rightOperand.getValue() + "))");
+                } else {
+                    retType.setValue("$((" + leftOperand.getValue() + "-" + rightOperand.getValue() + "))");
+                }
+            } else if (leftOperand instanceof StringType) {
+                retType = new StringType();
+                if (typeOperation == 33) {
+                    retType.setValue(leftOperand.getValue() + rightOperand.getValue());
+                } else {
+                    // TODO: not legal operation
+                    return null;
+                }
+            } else {
+                // TODO: compiler error
+                return null;
+            }
+
+            return retType;
+        } else {
+            return visitChildren(ctx);
+        }
     }
 
     @Override
     public BasicMetaType visitMultiplicativeExpression(ShelltyParser.MultiplicativeExpressionContext ctx) {
-        return visitChildren(ctx);
+        Logger.getInstance().log(null);
+        if (ctx.multiplicativeExpression() == null) {
+            return visit(ctx.castExpression());
+        }
+        BasicMetaType left = visit(ctx.multiplicativeExpression());
+        BasicMetaType right = visit(ctx.castExpression());
+        if (!left.equals(right) || !(left instanceof IntegerType)){
+            // TODO: not valide relation operation
+            return null;
+        }
+        return new IntegerType("$((" + left.getValue() + ctx.getChild(1).getText() + right.getValue() + "))");
     }
 
     @Override
     public BasicMetaType visitPostfixExpression(ShelltyParser.PostfixExpressionContext ctx) {
-        return visitChildren(ctx);
+        return visit(ctx.primaryExpression());
+    }
+
+    @Override
+    public BasicMetaType visitJumpStatement(ShelltyParser.JumpStatementContext ctx) {
+        // return
+        if ( ((TerminalNode)ctx.getChild(0)).getSymbol().getType() == 15) {
+            Node funcNode = getSemanticTree().findUpFunction();
+            if (ctx.expression() == null)  {
+                if (funcNode.getData().getReturnType() == NodeType.VOID) {
+                    codeGenerator.insertLine("return");
+                    return null;
+                } else {
+                    // TODO: error not valid return expression
+                    return null;
+                }
+            } 
+            BasicMetaType result = visit(ctx.expression());
+            codeGenerator.insertLine("echo " + result.getValue());
+            codeGenerator.insertLine("return " + result.getValue());
+        }
+        // TODO: write other case
+        return null;
     }
     
     @Override
     public BasicMetaType visitInitializer(ShelltyParser.InitializerContext ctx) {
         return visitChildren(ctx);
-    }
-
-    @Override
-    public BasicMetaType defaultResult() {
-        return null;
     }
 
     public Tree getSemanticTree() {

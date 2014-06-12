@@ -17,5 +17,14 @@ public abstract class BasicMetaType {
     public void setValue(String value) {
         this.value = value;
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == null) {
+            return false;
+        }
+        return this.getClass() == other.getClass();
+    }
+
 }
 

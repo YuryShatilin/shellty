@@ -200,6 +200,14 @@ public class Tree {
         return fields;
     }
 
+    public Node findUpFunction() {
+        Node curr = getCurrentNode();
+        while (curr != null && curr.getData().getType() != NodeType.DEF_FUNC) {
+            curr = curr.getParentNode();
+        }
+        return curr;
+    }
+
     public void debugPrint() {
         try {
             try(PrintStream ps = new PrintStream(new File("tree.out"))) {
