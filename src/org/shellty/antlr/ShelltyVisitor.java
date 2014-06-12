@@ -306,18 +306,18 @@ public interface ShelltyVisitor<T> extends ParseTreeVisitor<T> {
 	T visitDirectAbstractDeclarator(@NotNull ShelltyParser.DirectAbstractDeclaratorContext ctx);
 
 	/**
-	 * Visit a parse tree produced by {@link ShelltyParser#typeSpecifier}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitTypeSpecifier(@NotNull ShelltyParser.TypeSpecifierContext ctx);
-
-	/**
 	 * Visit a parse tree produced by {@link ShelltyParser#identifierList}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitIdentifierList(@NotNull ShelltyParser.IdentifierListContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link ShelltyParser#typeSpecifier}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTypeSpecifier(@NotNull ShelltyParser.TypeSpecifierContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link ShelltyParser#conditionalExpression}.
@@ -339,6 +339,13 @@ public interface ShelltyVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitAndExpression(@NotNull ShelltyParser.AndExpressionContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link ShelltyParser#leftValueAssigment}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLeftValueAssigment(@NotNull ShelltyParser.LeftValueAssigmentContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link ShelltyParser#labeledStatement}.

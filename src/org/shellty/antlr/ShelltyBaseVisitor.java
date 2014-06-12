@@ -354,7 +354,7 @@ public class ShelltyBaseVisitor<T> extends AbstractParseTreeVisitor<T> implement
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitTypeSpecifier(@NotNull ShelltyParser.TypeSpecifierContext ctx) { return visitChildren(ctx); }
+	@Override public T visitIdentifierList(@NotNull ShelltyParser.IdentifierListContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -362,7 +362,7 @@ public class ShelltyBaseVisitor<T> extends AbstractParseTreeVisitor<T> implement
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitIdentifierList(@NotNull ShelltyParser.IdentifierListContext ctx) { return visitChildren(ctx); }
+	@Override public T visitTypeSpecifier(@NotNull ShelltyParser.TypeSpecifierContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -387,6 +387,14 @@ public class ShelltyBaseVisitor<T> extends AbstractParseTreeVisitor<T> implement
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitAndExpression(@NotNull ShelltyParser.AndExpressionContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitLeftValueAssigment(@NotNull ShelltyParser.LeftValueAssigmentContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}

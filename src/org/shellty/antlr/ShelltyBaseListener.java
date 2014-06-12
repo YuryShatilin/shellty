@@ -563,19 +563,6 @@ public class ShelltyBaseListener implements ShelltyListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterTypeSpecifier(@NotNull ShelltyParser.TypeSpecifierContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitTypeSpecifier(@NotNull ShelltyParser.TypeSpecifierContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterIdentifierList(@NotNull ShelltyParser.IdentifierListContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -583,6 +570,19 @@ public class ShelltyBaseListener implements ShelltyListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitIdentifierList(@NotNull ShelltyParser.IdentifierListContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterTypeSpecifier(@NotNull ShelltyParser.TypeSpecifierContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTypeSpecifier(@NotNull ShelltyParser.TypeSpecifierContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -622,6 +622,19 @@ public class ShelltyBaseListener implements ShelltyListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitAndExpression(@NotNull ShelltyParser.AndExpressionContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLeftValueAssigment(@NotNull ShelltyParser.LeftValueAssigmentContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLeftValueAssigment(@NotNull ShelltyParser.LeftValueAssigmentContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

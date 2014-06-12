@@ -471,17 +471,6 @@ public interface ShelltyListener extends ParseTreeListener {
 	void exitDirectAbstractDeclarator(@NotNull ShelltyParser.DirectAbstractDeclaratorContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link ShelltyParser#typeSpecifier}.
-	 * @param ctx the parse tree
-	 */
-	void enterTypeSpecifier(@NotNull ShelltyParser.TypeSpecifierContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link ShelltyParser#typeSpecifier}.
-	 * @param ctx the parse tree
-	 */
-	void exitTypeSpecifier(@NotNull ShelltyParser.TypeSpecifierContext ctx);
-
-	/**
 	 * Enter a parse tree produced by {@link ShelltyParser#identifierList}.
 	 * @param ctx the parse tree
 	 */
@@ -491,6 +480,17 @@ public interface ShelltyListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitIdentifierList(@NotNull ShelltyParser.IdentifierListContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link ShelltyParser#typeSpecifier}.
+	 * @param ctx the parse tree
+	 */
+	void enterTypeSpecifier(@NotNull ShelltyParser.TypeSpecifierContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ShelltyParser#typeSpecifier}.
+	 * @param ctx the parse tree
+	 */
+	void exitTypeSpecifier(@NotNull ShelltyParser.TypeSpecifierContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link ShelltyParser#conditionalExpression}.
@@ -524,6 +524,17 @@ public interface ShelltyListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitAndExpression(@NotNull ShelltyParser.AndExpressionContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link ShelltyParser#leftValueAssigment}.
+	 * @param ctx the parse tree
+	 */
+	void enterLeftValueAssigment(@NotNull ShelltyParser.LeftValueAssigmentContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ShelltyParser#leftValueAssigment}.
+	 * @param ctx the parse tree
+	 */
+	void exitLeftValueAssigment(@NotNull ShelltyParser.LeftValueAssigmentContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link ShelltyParser#labeledStatement}.

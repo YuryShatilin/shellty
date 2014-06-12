@@ -102,7 +102,14 @@ conditionalExpression
 
 assignmentExpression
     :   conditionalExpression
-    |   unaryExpression assignmentOperator assignmentExpression
+    |   leftValueAssigment assignmentOperator conditionalExpression
+    ;
+
+leftValueAssigment
+    :   Identifier
+    |   Identifier '[' expression ']'
+    |   Identifier '(' argumentExpressionList? ')'
+    |   Identifier '.' Identifier
     ;
 
 assignmentOperator
