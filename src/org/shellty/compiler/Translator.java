@@ -21,6 +21,7 @@ import java.util.List;
 class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     private Tree semanticTree;
     private CodeGen codeGenerator;
+    private BasicMetaType switchType = null;
 
     public Translator() {
         semanticTree = new Tree();        
@@ -39,6 +40,24 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         codeGenerator.decIndent();
         return ret;
     }
+
+    /* @Override */
+    /* public BasicMetaType visitStatement(ShelltyParser.StatementContext ctx) { */
+    /*     if (ctx.labeledStatement() != null) { */
+    /*         if (switchType == null) { */
+    /*             // TODO: error case statement */
+    /*             Logger.getInstance().log("error case statement"); */
+    /*             return null; */
+    /*         } */
+    /*         visit(ctx.labeledStatement()); */
+    /*     } */
+    /*     if (switchType != null) { */
+    /*         // TODO: error switch context  */
+    /*         Logger.getInstance().log("error"); */
+    /*         return null; */
+    /*     } */
+    /*     return visitChildren(ctx); */
+    /* } */
 
     private int currNumberParam = 0;
     @Override
@@ -748,10 +767,66 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                 visit(ctx.statement(1));
             }
             codeGenerator.insertLine("fi");
+            return null;
         }
 
         // switch
+        if (typeTerminal == 17) {
+            BasicMetaType condition = visit(ctx.expression());
+            switchType = condition;
+            codeGenerator.insertLine("case " + condition.getValue() + " in");
+            visit(ctx.switchStatement());
+            codeGenerator.insertLine("esac");
+            return null;
+        }
+
         return null;
+    }
+
+    /* @Override */
+    /* public BasicMetaType visitSwitchStatement(ShelltyParser.SwitchStatementContext ctx) { */
+    /*     return null; */
+    /* } */
+
+    @Override
+    public BasicMetaType visitLabeledStatement(ShelltyParser.LabeledStatementContext ctx) {
+        int terminalType = ((TerminalNode)ctx.getChild(0)).getSymbol().getType();
+        // default
+        if (terminalType == 7) {
+            codeGenerator.insertSymbols("*)");
+        } else {
+            // case 
+            BasicMetaType expr = visit(ctx.constantExpression());
+            if (!switchType.equals(expr)) {
+                // TODO: error
+                Logger.getInstance().log("error " + expr);
+                return null;
+            }
+            codeGenerator.insertSymbols(expr.getValue() + ")");
+        }
+
+        visit(ctx.statement());
+        codeGenerator.insertLine(";;");
+        return null;
+        /* if (switchType == null) { */
+        /*     Logger.getInstance().log("error"); */
+        /*     return null; */
+        /* } */
+        /* BasicMetaType saveSwitchType = switchType; */
+        /* switchType = null; */
+        /*  */
+        /* if (ctx.constantExpression() != null) { */
+        /*     BasicMetaType expr = visit(ctx.constantExpression()); */
+        /*     if (!expr.equals(saveSwitchType)) { */
+        /*         // TODO: error */
+        /*         Logger.getInstance().log("type mismatch"); */
+        /*         return null; */
+        /*     }  */
+        /*  */
+        /* } else { */
+        /* } */
+
+        /* switchType = saveSwitchType; */
     }
 
     @Override
