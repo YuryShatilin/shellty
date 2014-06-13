@@ -728,6 +728,32 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         return null;
     }
     
+
+    @Override
+    public BasicMetaType visitSelectionStatement(ShelltyParser.SelectionStatementContext ctx) {
+        int typeTerminal = ((TerminalNode)ctx.getChild(0)).getSymbol().getType();
+        
+        // if
+        if (typeTerminal == 13){
+            BasicMetaType condition = visit(ctx.expression());
+            Logger.getInstance().log(condition.getValue().charAt(0));
+            if (condition.getValue().startsWith("$")) {
+                condition.setValue(condition.getValue().replaceFirst("\\$", ""));
+            }
+            codeGenerator.insertLine("if " + condition.getValue());
+            codeGenerator.insertLine("then");
+            visit(ctx.statement(0));
+            if (ctx.statement(1) != null) {
+                codeGenerator.insertLine("else");
+                visit(ctx.statement(1));
+            }
+            codeGenerator.insertLine("fi");
+        }
+
+        // switch
+        return null;
+    }
+
     @Override
     public BasicMetaType visitInitializer(ShelltyParser.InitializerContext ctx) {
         return visitChildren(ctx);
