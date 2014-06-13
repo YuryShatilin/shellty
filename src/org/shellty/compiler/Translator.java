@@ -240,6 +240,9 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         /* BasicMetaType result = visitChildren(ctx); */
         if (ctx.expression() != null) {
             BasicMetaType result = visit(ctx.expression());
+            if (result.getValue().startsWith("$")) {
+                result.setValue(result.getValue().replaceFirst("\\$",""));
+            }
             codeGenerator.insertLine(result.getValue());
             return result;
         }
@@ -793,7 +796,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         int terminalType = ((TerminalNode)ctx.getChild(0)).getSymbol().getType();
         // default
         if (terminalType == 7) {
-            codeGenerator.insertSymbols("*)");
+            codeGenerator.insertLine("*)");
         } else {
             // case 
             BasicMetaType expr = visit(ctx.constantExpression());
@@ -802,7 +805,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                 Logger.getInstance().log("error " + expr);
                 return null;
             }
-            codeGenerator.insertSymbols(expr.getValue() + ")");
+            codeGenerator.insertLine(expr.getValue() + ")");
         }
 
         visit(ctx.statement());
@@ -827,6 +830,24 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         /* } */
 
         /* switchType = saveSwitchType; */
+    }
+
+    @Override
+    public BasicMetaType visitIterationStatement(ShelltyParser.IterationStatementContext ctx) {
+        int terminalNode = ((TerminalNode)ctx.getChild(0)).getSymbol().getType();
+        // while 
+        if (terminalNode == 19) {
+            BasicMetaType condition = visit(ctx.expression(0));
+            if (condition.getValue().startsWith("$")) {
+                condition.setValue(condition.getValue().replaceFirst("\\$",""));
+            }
+            codeGenerator.insertLine("while " + condition.getValue());
+            codeGenerator.insertLine("do");
+            visit(ctx.statement());
+            codeGenerator.insertLine("done");
+            return null;
+        } 
+        return null;
     }
 
     @Override
