@@ -680,6 +680,17 @@ public interface ShelltyListener extends ParseTreeListener {
 	void exitInclusiveOrExpression(@NotNull ShelltyParser.InclusiveOrExpressionContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link ShelltyParser#switchStatement}.
+	 * @param ctx the parse tree
+	 */
+	void enterSwitchStatement(@NotNull ShelltyParser.SwitchStatementContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ShelltyParser#switchStatement}.
+	 * @param ctx the parse tree
+	 */
+	void exitSwitchStatement(@NotNull ShelltyParser.SwitchStatementContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link ShelltyParser#equalityExpression}.
 	 * @param ctx the parse tree
 	 */

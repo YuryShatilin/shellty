@@ -810,6 +810,19 @@ public class ShelltyBaseListener implements ShelltyListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterSwitchStatement(@NotNull ShelltyParser.SwitchStatementContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSwitchStatement(@NotNull ShelltyParser.SwitchStatementContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterEqualityExpression(@NotNull ShelltyParser.EqualityExpressionContext ctx) { }
 	/**
 	 * {@inheritDoc}

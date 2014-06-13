@@ -194,7 +194,7 @@ structDeclaratorList
 
 structDeclarator
     :   declarator
-    |   declarator? ':' constantExpression
+    /* |   declarator? ':' constantExpression */
     ;
 
 enumSpecifier
@@ -331,7 +331,12 @@ expressionStatement
 
 selectionStatement
     :   'if' '(' expression ')' statement ('else' statement)?
-    |   'switch' '(' expression ')' statement
+    |   'switch' '(' expression ')' '{' switchStatement? '}'
+    ;
+
+switchStatement
+    :   labeledStatement
+    |   switchStatement labeledStatement
     ;
 
 iterationStatement
@@ -490,6 +495,7 @@ Constant
 fragment
 IntegerConstant
     :   DecimalConstant
+    |   '0'
     ;
 
 fragment

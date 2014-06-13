@@ -439,6 +439,13 @@ public interface ShelltyVisitor<T> extends ParseTreeVisitor<T> {
 	T visitInclusiveOrExpression(@NotNull ShelltyParser.InclusiveOrExpressionContext ctx);
 
 	/**
+	 * Visit a parse tree produced by {@link ShelltyParser#switchStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSwitchStatement(@NotNull ShelltyParser.SwitchStatementContext ctx);
+
+	/**
 	 * Visit a parse tree produced by {@link ShelltyParser#equalityExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
