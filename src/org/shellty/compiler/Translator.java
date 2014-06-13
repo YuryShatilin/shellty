@@ -406,6 +406,38 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     }
 
     @Override
+    public BasicMetaType visitUnaryExpression(ShelltyParser.UnaryExpressionContext ctx) {
+        if (ctx.postfixExpression() != null) {
+            return visit(ctx.postfixExpression());
+        }
+
+        // TODO: not suported
+        Logger.getInstance().log("not suported");
+        return null;
+        /* BasicMetaType right = visit(ctx.unaryExpression()); */
+        /* if (ctx.unaryOperator() != null) { */
+        /*     int terminalType = ((TerminalNode)ctx.getChild(0).getChild(0)).getSymbol().getType();  */
+        /*     if (terminalType == ShelltyParser.Not) { */
+        /*         if (right instanceof BoolType) { */
+        /*             return new BoolType("$((!" + right.getValue() + "))"); */
+        /*         } else { */
+        /*             // TODO: error operation */
+        /*             Logger.getInstance().log("error"); */
+        /*             return null; */
+        /*         } */
+        /*     } */
+        /* } */
+        /*  */
+        /* if (right instanceof IntegerType) { */
+        /*     return new IntegerType("$(("+ctx.getChild(0).getText() + right.getValue() + "))"); */
+        /* } else { */
+        /*     // TODO: error operation */
+        /*     Logger.getInstance().log("error"); */
+        /*     return null; */
+        /* } */
+    }
+
+    @Override
     public BasicMetaType visitCastExpression(ShelltyParser.CastExpressionContext ctx) {
         Logger.getInstance().log(null);
         if (ctx.castExpression() != null) {
@@ -725,7 +757,19 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
 
     @Override
     public BasicMetaType visitPostfixExpression(ShelltyParser.PostfixExpressionContext ctx) {
-        return visit(ctx.primaryExpression());
+        if (ctx.primaryExpression() != null) {
+            return visit(ctx.primaryExpression());
+        }
+        // TODO: error not suported
+        Logger.getInstance().log("not support");
+        return null;
+        /* BasicMetaType left = visit(ctx.postfixExpression()); */
+        /* if (left instanceof IntegerType) { */
+        /*     return new IntegerType("$((" + left.getValue() + ctx.getChild(1).getText() + "))"); */
+        /* } else { */
+        /*     // TODO: error */
+        /*     return null; */
+        /* } */
     }
 
     @Override
@@ -836,7 +880,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     public BasicMetaType visitIterationStatement(ShelltyParser.IterationStatementContext ctx) {
         int terminalNode = ((TerminalNode)ctx.getChild(0)).getSymbol().getType();
         // while 
-        if (terminalNode == 19) {
+        if (terminalNode == ShelltyParser.While) {
             BasicMetaType condition = visit(ctx.expression(0));
             if (condition.getValue().startsWith("$")) {
                 condition.setValue(condition.getValue().replaceFirst("\\$",""));
@@ -847,6 +891,30 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             codeGenerator.insertLine("done");
             return null;
         } 
+        // for parse
+        String forExpression = "";
+        boolean first = true;
+        for (ShelltyParser.ExpressionContext expr : ctx.expression()) {
+            if (!first) {
+                forExpression += " ;";
+            }
+            if (expr != null) {
+                forExpression += visit(expr).getValue();
+            }
+            first = false;
+        }
+        codeGenerator.insertLine("for (( " + forExpression + "))");
+        codeGenerator.insertLine("do");
+        visit(ctx.statement());
+        codeGenerator.insertLine("done");
+        /* String forExpression = ""; */
+        /* BasicMetaType expr = null; */
+        /* if (ctx.expression(0) != null) { */
+        /*     expr = visit(ctx.expression(0)); */
+        /*     forExpression += expr.getValue(); */
+        /* }  */
+        /* forExpression += " ;"; */
+
         return null;
     }
 
