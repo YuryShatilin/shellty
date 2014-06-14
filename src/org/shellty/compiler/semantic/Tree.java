@@ -54,6 +54,11 @@ public class Tree {
     }
 
     public Node functionInclude(String functionName, NodeData.NodeType returnType) {
+        if (inStruct()) {
+            // TODO: generate error
+            return null;
+        }
+
         Node node = new Node(null, null, mCurrentNode);
         mCurrentNode.setLeftNode(node);
 

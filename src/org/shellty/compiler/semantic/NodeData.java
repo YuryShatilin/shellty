@@ -79,7 +79,8 @@ public class NodeData {
 
     @Override
     public String toString() {
-        return lexem + ": " + getType() + ":p=" + getCountParams() + ":a=" + isArrayVar();
+        return lexem + ": " + getType() + ":p=" + getCountParams() +
+            ":a=" + isArrayVar() + ":v=" + getValue();
     }
 
     public NodeData clone() {

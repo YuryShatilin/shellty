@@ -117,6 +117,29 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         return null;
     }
 
+    @Override
+    public BasicMetaType visitStructFieldInitializer(ShelltyParser.StructFieldInitializerContext ctx) {
+        Node lastVar = getSemanticTree().getCurrentNode();
+        if (ctx.Constant() != null && lastVar.getData().getType() != NodeType.INTEGER ||
+            ctx.StringLiteral() != null && lastVar.getData().getType() != NodeType.STRING) {
+            // TODO: error init
+            Logger.getInstance().log("error");
+            return null;
+        }
+
+        lastVar.getData().setValue(ctx.getChild(1).getText());
+        /* if (ctx.Constant() != null)  { */
+        /*     if (getSemanticTree().getCurrentNode().getData().getType() !=  */
+        /*             NodeType.INTEGER) { */
+        /*         // TODO: error */
+        /*         Logger.getInstance().log("error"); */
+        /*         return null; */
+        /*     } */
+        /*     getSemanticTree().getCurrentNode().getData().setValue(ctx.Constant().getText()); */
+        /* } */
+        return null;
+    }
+
     NodeData.NodeType saveType;
     @Override
     public BasicMetaType visitStructDeclaration(ShelltyParser.StructDeclarationContext ctx) {
@@ -364,7 +387,10 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                     BasicMetaType index = visit(ctx.expression());
                     /* codeGenerator.insertSymbols("]}"); */
                     BasicMetaType retType = Utils.toMetaType(targetNode.getData().getType());
-                    retType.setValue("$((${" + name + "[" + index.getValue() + "]}))");
+                    retType.setValue("${" + name + "[" + index.getValue() + "]}");
+                    if (targetNode.getData().getType() == NodeType.INTEGER) {
+                        retType.setValue("$((" + retType.getValue() + "))");
+                    }
                     return retType;
                 }
                 case 65:{ // struct field
@@ -967,6 +993,11 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
 
     @Override
     public BasicMetaType visitInitializer(ShelltyParser.InitializerContext ctx) {
+        if (ctx.initializerList() != null) {
+            // TODO: not suppoted
+            Logger.getInstance().log("not suppoted");
+            return null;
+        }
         return visitChildren(ctx);
     }
 

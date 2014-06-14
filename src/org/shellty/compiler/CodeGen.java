@@ -81,8 +81,8 @@ public class CodeGen {
         String fieldsString = "";
         for (Node field : fields) {
             fieldsString += String.format("[%s]", field.getData().getLexem());
-            if (!varNode.getData().getValue().isEmpty()) {
-                fieldsString += "="+varNode.getData().getValue();
+            if (!field.getData().getValue().isEmpty()) {
+                fieldsString += "="+field.getData().getValue();
             } else {
                 fieldsString += "=\"\"";
             }
