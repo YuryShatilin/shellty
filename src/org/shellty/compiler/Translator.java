@@ -363,7 +363,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                     BasicMetaType index = visit(ctx.expression());
                     /* codeGenerator.insertSymbols("]}"); */
                     BasicMetaType retType = Utils.toMetaType(targetNode.getData().getType());
-                    retType.setValue("${" + name + "[" + index.getValue() + "]}");
+                    retType.setValue("$((${" + name + "[" + index.getValue() + "]}))");
                     return retType;
                 }
                 case 65:{ // struct field
