@@ -7,6 +7,8 @@ public class NodeData {
         DEF_ENUM,
         DEF_STRUCT,
 
+        ENUMNAME,
+
         INTEGER,
         ENUMVAR,
         STRING,

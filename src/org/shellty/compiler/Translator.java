@@ -176,13 +176,13 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     @Override
     public BasicMetaType visitEnumSpecifier(ShelltyParser.EnumSpecifierContext ctx) {
         String enumName = ctx.Identifier().getText();
-        Node retNode = getSemanticTree().enumInclude(enumName);
+        getSemanticTree().enumInclude(enumName);
 
         codeGenerator.insertSymbols(enumName + "=(");
 
         visit(ctx.enumeratorList());
 
-        getSemanticTree().setCurrentNode(retNode);
+        /* getSemanticTree().setCurrentNode(retNode); */
         codeGenerator.insertSymbols(")");
         codeGenerator.insertLine();
 
@@ -192,7 +192,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     @Override
     public BasicMetaType visitEnumerator(ShelltyParser.EnumeratorContext ctx) {
         String val = ctx.enumerationConstant().getText();
-        getSemanticTree().varInclude(val, NodeType.EMPTY);
+        getSemanticTree().varInclude(val, NodeType.ENUMNAME);
 
         codeGenerator.insertStringLiteral(val);
         codeGenerator.insertSymbols(" ");
@@ -212,6 +212,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
 
     @Override
     public BasicMetaType visitDeclaration(ShelltyParser.DeclarationContext ctx) {
+        Logger.getInstance().log(ctx.getText());
         if (ctx.getParent() instanceof ShelltyParser.BlockItemContext) {
             int tokenType = ctx.typeDeclarator().getStart().getType();
             String tokenText = ctx.typeDeclarator().getText();
@@ -240,6 +241,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         String varName = ctx.declarator().directDeclarator().Identifier().getText();
         if (!getSemanticTree().checkDuplicate(varName)) {
             // TODO: throw redefinition error
+            return null;
         }
         
 
@@ -250,27 +252,31 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         }
 
 
-        String init = "";
         Node varNode = getSemanticTree().getCurrentNode();
         if (ctx.initializer() != null) {
             if (varNode.getData().getType() != NodeType.INTEGER && 
-                    varNode.getData().getType() != NodeType.STRING) {
+                    varNode.getData().getType() != NodeType.STRING &&
+                    varNode.getData().getType() != NodeType.ENUMVAR ) {
                 // TODO: error init string and integer only
                 return null;
             }
-
             BasicMetaType in = visit(ctx.initializer());
-            if (!Utils.toMetaType(varNode.getData().getType()).equals(in)) {
-                // TODO: error init
-                return null;
+            if (varNode.getData().getType() != NodeType.ENUMVAR) {
+                if (!Utils.toMetaType(varNode.getData().getType()).equals(in)) {
+                    // TODO: error init
+                    return null;
+                }
+            } else {
+                EnumType etype = new EnumType("",varNode.getRightNode());
+                if (!etype.equals(in)) {
+                    return null;
+                }
             }
-            init = in.getValue();
-            varNode.getData().setValue(init);
+            varNode.getData().setValue(in.getValue());
         } 
 
         codeGenerator.insertVarDeclaration(getSemanticTree().getCurrentNode());
-
-
+        Logger.getInstance().log("this");
         getSemanticTree().setCurrentNode(futureVarNode);
 
         return null;
@@ -443,6 +449,12 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             if (varNode == null) {
                 // TODO: undefined var
             }
+            Logger.getInstance().log(ctx.Identifier(0).getText());
+            Logger.getInstance().log(varNode.getData());
+            if (varNode.getData().getType() == NodeType.ENUMNAME) {
+                Node enumNode = getSemanticTree().findUpDefEnum(varNode);
+                return new EnumType(varNode.getData().getLexem(), enumNode);
+            }
             /* codeGenerator.insertSymbols("${" + varNode.getData().getLexem() + "}"); */
             BasicMetaType retType = null;
             if (varNode.getData().isArrayVar()) {
@@ -451,8 +463,11 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                 /* retType.setValue(varNode.getData().getLexem() + "[@]"); */
                  /* "$(declare -p assoc_array)"  */
             } else  if (varNode.getData().getType() == NodeType.COMPLEXVAR) {
-                retType = new ComplexType();
-                retType.setValue("\"$(declare -p " + varNode.getData().getLexem() + ")\"");
+                retType = new ComplexType("\"$(declare -p " + varNode.getData().getLexem() + ")\"", 
+                        varNode.getRightNode());
+            } else if (varNode.getData().getType() == NodeType.ENUMVAR) {
+                retType = new EnumType("${" + varNode.getData().getLexem() + "}",
+                        varNode.getRightNode());
             } else {
                 retType = Utils.toMetaType(varNode.getData().getType());
                 retType.setValue("${" + varNode.getData().getLexem() + "}");

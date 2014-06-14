@@ -31,6 +31,7 @@ public class Utils {
 
     public static BasicMetaType toMetaType(NodeType type) {
         switch (type) {
+        case ENUMNAME:
         case ENUMVAR:
             return new EnumType();
         case INTEGER:

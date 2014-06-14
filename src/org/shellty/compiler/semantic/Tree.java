@@ -172,24 +172,22 @@ public class Tree {
         return false;
     }
 
-    public Node enumInclude(String enumName) {
+    public void enumInclude(String enumName) {
         if (inStruct()) {
             // TODO: generate error
-            return null;
+            return;
         }
 
         Node node = new Node(null, null, mCurrentNode);
         node.getData().setType(NodeType.DEF_ENUM);
         node.getData().setLexem(enumName);
 
-        mCurrentNode.setLeftNode(node);
+        /* mCurrentNode.setLeftNode(node); */
+        /*  */
+        /* Node rightNode = Node.createEmptyNode(); */
+        /* node.setRightNode(rightNode); */
 
-        Node rightNode = Node.createEmptyNode();
-        node.setRightNode(rightNode);
-
-        mCurrentNode = rightNode;
-
-        return node;
+        mCurrentNode = node;
     }
 
     public static List<Node> getFieldsStruction(Node structNode) {
@@ -223,6 +221,15 @@ public class Tree {
         while (i < position && curr != null) {
             curr = curr.getLeftNode();
             i++;
+        }
+        return curr;
+    }
+
+    public Node findUpDefEnum(Node from) {
+        Node curr = from;
+        while (curr != null &&
+                curr.getData().getType() != NodeType.DEF_ENUM) {
+            curr = curr.getParentNode();
         }
         return curr;
     }
