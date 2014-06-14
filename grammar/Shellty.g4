@@ -282,7 +282,7 @@ typedefName
     ;
 
 initializer
-    :   assignmentExpression
+    :   conditionalExpression
     |   '{' initializerList '}'
     |   '{' initializerList ',' '}'
     ;

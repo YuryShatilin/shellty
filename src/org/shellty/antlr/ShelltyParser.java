@@ -3909,8 +3909,8 @@ public class ShelltyParser extends Parser {
 		public InitializerListContext initializerList() {
 			return getRuleContext(InitializerListContext.class,0);
 		}
-		public AssignmentExpressionContext assignmentExpression() {
-			return getRuleContext(AssignmentExpressionContext.class,0);
+		public ConditionalExpressionContext conditionalExpression() {
+			return getRuleContext(ConditionalExpressionContext.class,0);
 		}
 		public InitializerContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -3940,7 +3940,7 @@ public class ShelltyParser extends Parser {
 			case 1:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(629); assignmentExpression();
+				setState(629); conditionalExpression();
 				}
 				break;
 
@@ -5750,8 +5750,8 @@ public class ShelltyParser extends Parser {
 		"\u026e\5`\61\2\u026d\u026c\3\2\2\2\u026d\u026e\3\2\2\2\u026e\u026f\3\2"+
 		"\2\2\u026f\u0271\7\30\2\2\u0270\u0266\3\2\2\2\u0270\u026a\3\2\2\2\u0271"+
 		"\u0274\3\2\2\2\u0272\u0270\3\2\2\2\u0272\u0273\3\2\2\2\u0273i\3\2\2\2"+
-		"\u0274\u0272\3\2\2\2\u0275\u0276\7E\2\2\u0276k\3\2\2\2\u0277\u0282\5$"+
-		"\23\2\u0278\u0279\7\33\2\2\u0279\u027a\5n8\2\u027a\u027b\7\34\2\2\u027b"+
+		"\u0274\u0272\3\2\2\2\u0275\u0276\7E\2\2\u0276k\3\2\2\2\u0277\u0282\5\""+
+		"\22\2\u0278\u0279\7\33\2\2\u0279\u027a\5n8\2\u027a\u027b\7\34\2\2\u027b"+
 		"\u0282\3\2\2\2\u027c\u027d\7\33\2\2\u027d\u027e\5n8\2\u027e\u027f\7\64"+
 		"\2\2\u027f\u0280\7\34\2\2\u0280\u0282\3\2\2\2\u0281\u0277\3\2\2\2\u0281"+
 		"\u0278\3\2\2\2\u0281\u027c\3\2\2\2\u0282m\3\2\2\2\u0283\u0285\b8\1\2\u0284"+
