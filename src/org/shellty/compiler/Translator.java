@@ -242,9 +242,6 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             // TODO: throw redefinition error
         }
         
-        if (ctx.initializer() != null) {
-            visit(ctx.initializer());
-        }
 
         getSemanticTree().getCurrentNode().getData().setLexem(varName);
         if (ctx.declarator().directDeclarator().getChildCount() > 1) {
@@ -252,7 +249,27 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             getSemanticTree().getCurrentNode().getData().setArrayVar(true);
         }
 
+
+        String init = "";
+        Node varNode = getSemanticTree().getCurrentNode();
+        if (ctx.initializer() != null) {
+            if (varNode.getData().getType() != NodeType.INTEGER && 
+                    varNode.getData().getType() != NodeType.STRING) {
+                // TODO: error init string and integer only
+                return null;
+            }
+
+            BasicMetaType in = visit(ctx.initializer());
+            if (!Utils.toMetaType(varNode.getData().getType()).equals(in)) {
+                // TODO: error init
+                return null;
+            }
+            init = in.getValue();
+            varNode.getData().setValue(init);
+        } 
+
         codeGenerator.insertVarDeclaration(getSemanticTree().getCurrentNode());
+
 
         getSemanticTree().setCurrentNode(futureVarNode);
 
@@ -993,12 +1010,12 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
 
     @Override
     public BasicMetaType visitInitializer(ShelltyParser.InitializerContext ctx) {
-        if (ctx.initializerList() != null) {
+        if (ctx.conditionalExpression() == null) {
             // TODO: not suppoted
             Logger.getInstance().log("not suppoted");
             return null;
         }
-        return visitChildren(ctx);
+        return visit(ctx.conditionalExpression());
     }
 
     public Tree getSemanticTree() {

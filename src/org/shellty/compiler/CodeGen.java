@@ -57,15 +57,19 @@ public class CodeGen {
             break;
         case ENUMVAR:
         case STRING:
-            insertLine(String.format("local %s", varName));
             if (!varNode.getData().getValue().isEmpty()) {
-                insertSymbols("=" + varNode.getData().getValue());
+                insertLine(String.format("local  %s=%s", varName, 
+                            varNode.getData().getValue()));
+            } else {
+                insertLine(String.format("local  %s", varName));
             }
             return;
         case INTEGER:
-            insertLine(String.format("local -i %s", varName));
             if (!varNode.getData().getValue().isEmpty()) {
-                insertSymbols("=" + varNode.getData().getValue());
+                insertLine(String.format("local -i %s=%s", varName, 
+                            varNode.getData().getValue()));
+            } else {
+                insertLine(String.format("local -i %s", varName));
             }
             return;
         default:
@@ -89,6 +93,11 @@ public class CodeGen {
             fieldsString += " ";
         }
         insertLine("local -a " + varName + "=(" + fieldsString + ")");
+    }
+
+    public void insertVarDeclaration(Node varNode, String initializer) {
+        insertVarDeclaration(varNode);
+        insertSymbols("=" + initializer);
     }
 
     public void insertParametrDeclaration(Node parametrNode, int number_parameter) {
