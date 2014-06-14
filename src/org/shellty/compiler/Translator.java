@@ -24,6 +24,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     private Tree semanticTree;
     private CodeGen codeGenerator;
     private BasicMetaType switchType = null;
+    private boolean inCycle = false;
 
     public Translator() {
         semanticTree = new Tree();        
@@ -808,7 +809,8 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     @Override
     public BasicMetaType visitJumpStatement(ShelltyParser.JumpStatementContext ctx) {
         // return
-        if ( ((TerminalNode)ctx.getChild(0)).getSymbol().getType() == 15) {
+        int terminalType = ((TerminalNode)ctx.getChild(0)).getSymbol().getType();
+        if ( terminalType == ShelltyParser.Return) {
             Node funcNode = getSemanticTree().findUpFunction();
             if (ctx.expression() == null)  {
                 if (funcNode.getData().getReturnType() == NodeType.VOID) {
@@ -822,8 +824,16 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             BasicMetaType result = visit(ctx.expression());
             codeGenerator.insertLine("echo " + result.getValue());
             codeGenerator.insertLine("return " + result.getValue());
+            return null;
+        } 
+
+        if (!inCycle) {
+            // TODO: error
+            Logger.getInstance().log("error");
+            return null;
         }
-        // TODO: write other case
+        codeGenerator.insertLine(ctx.getChild(0).getText());
+        
         return null;
     }
     
@@ -913,6 +923,8 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     public BasicMetaType visitIterationStatement(ShelltyParser.IterationStatementContext ctx) {
         int terminalNode = ((TerminalNode)ctx.getChild(0)).getSymbol().getType();
         // while 
+        boolean save = inCycle;
+        inCycle = true;
         if (terminalNode == ShelltyParser.While) {
             BasicMetaType condition = visit(ctx.expression(0));
             if (condition.getValue().startsWith("$")) {
@@ -922,6 +934,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             codeGenerator.insertLine("do");
             visit(ctx.statement());
             codeGenerator.insertLine("done");
+            inCycle = save;
             return null;
         } 
         // for parse
@@ -940,6 +953,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         codeGenerator.insertLine("do");
         visit(ctx.statement());
         codeGenerator.insertLine("done");
+        inCycle = save;
         /* String forExpression = ""; */
         /* BasicMetaType expr = null; */
         /* if (ctx.expression(0) != null) { */
