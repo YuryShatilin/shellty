@@ -209,6 +209,7 @@ public class Tree {
     }
 
     public Node getParametr(Node funcNode, int position) {
+        Logger.getInstance().log(funcNode.getData().getLexem() + " " + position);
         if (position > funcNode.getData().getCountParams()) {
             return null;
         }
@@ -216,6 +217,7 @@ public class Tree {
         int i = 0;
         while (i < position && curr != null) {
             curr = curr.getLeftNode();
+            i++;
         }
         return curr;
     }

@@ -3,12 +3,14 @@ package org.shellty.compiler;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.shellty.antlr.ShelltyBaseVisitor;
 import org.shellty.antlr.ShelltyParser;
+import org.shellty.compiler.semantic.Meta.ArrayType;
 import org.shellty.compiler.semantic.Meta.BasicMetaType;
 import org.shellty.compiler.semantic.Meta.BoolType;
 import org.shellty.compiler.semantic.Meta.ComplexType;
 import org.shellty.compiler.semantic.Meta.EnumType;
 import org.shellty.compiler.semantic.Meta.IntegerType;
 import org.shellty.compiler.semantic.Meta.StringType;
+import org.shellty.compiler.semantic.Meta.VoidType;
 import org.shellty.compiler.semantic.Node;
 import org.shellty.compiler.semantic.NodeData;
 import org.shellty.compiler.semantic.NodeData.NodeType;
@@ -265,14 +267,20 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             return null;
         }
 
+        BasicMetaType arguments = new VoidType();
+        if (ctx.argumentExpressionList() != null) {
+            arguments.setValue(visit(ctx.argumentExpressionList()).getValue());
+        }
+
         BasicMetaType argument = visit(ctx.conditionalExpression());
         Logger.getInstance().log(argument.getValue());
         if (functionNode != null) {
             Node parametrNode = getSemanticTree().getParametr(functionNode, argCount);
+            Logger.getInstance().log(argCount + " " + argument.getValue()); 
             Logger.getInstance().log(parametrNode.getData().getLexem());
             BasicMetaType parametr = Utils.toMetaType(parametrNode.getData().getType());
             if (!argument.equals(parametr) && 
-                    !(parametrNode.getData().getType() == NodeType.INTEGER 
+                    (parametrNode.getData().getType() == NodeType.INTEGER 
                     && argument instanceof BoolType)) {
                 // TODO: mismathc argument function 
                 Logger.getInstance().log("error 2");
@@ -281,20 +289,30 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         }
 
         argCount += 1;
-        if (ctx.argumentExpressionList() != null) {
-            argument.setValue(argument.getValue() + " " + visit(ctx.argumentExpressionList()).getValue());
-        }
-        Logger.getInstance().log(argument.getValue());
-        return argument;
+        arguments.setValue(arguments.getValue() + " " + argument.getValue());
+
+        Logger.getInstance().log(arguments.getValue());
+        return arguments;
     }
 
     @Override
     public BasicMetaType visitPrimaryExpression(ShelltyParser.PrimaryExpressionContext ctx) {
         Logger.getInstance().log(ctx.getText());
         // TODO: translate brackets
-        /* if (ctx.expression() != null) { */
-        /*     return visit(ctx.expression()); */
-        /* } */
+        if (ctx.getChild(0) instanceof TerminalNode && 
+                ((TerminalNode)ctx.getChild(0)).
+                getSymbol().getType() == ShelltyParser.LeftParen) {
+
+            BasicMetaType expr = visit(ctx.expression());
+            if (expr instanceof IntegerType) {
+                expr.setValue("(" + expr.getValue() + ")");
+                return expr;
+            } else {
+                // TODO: error. not supported
+                return null;
+            }
+            /* return visit(ctx.expression()); */
+        }
 
         if (ctx.getChild(1) instanceof TerminalNode) {
             TerminalNode terminal = (TerminalNode)ctx.getChild(1);            
@@ -310,13 +328,15 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                     int saveArgCount = argCount;
                     argCount = 0;
                     BasicMetaType argResult = visit(ctx.argumentExpressionList());
-                    argCount = saveArgCount;
                     /* codeGenerator.insertSymbols("$(" + name); */
                     if (functionNode != null
-                            && functionNode.getData().getCountParams() != argCount+1) {
+                            && functionNode.getData().getCountParams() != argCount) {
                         // TODO: arguments count mismatch
+                        Logger.getInstance().log("err " + functionNode.getData().getCountParams() + " " 
+                                + argCount);
                         return null;
                     }
+                    argCount = saveArgCount;
                     /* codeGenerator.insertSymbols(")"); */
                     BasicMetaType retType;
                     if (functionNode != null) {
@@ -324,6 +344,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                     } else {
                         retType = new StringType();
                     }
+
                     retType.setValue("$(" + name + " " + argResult.getValue() + ")");
                     Logger.getInstance().log(retType.getValue());
 
@@ -350,7 +371,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                         // TODO: error not found var
                     }
                     if (targetNode.getData().getType() == NodeType.COMPLEXVAR) {
-                        // TODO: var is not array
+                        // TODO: var struct
                     }
                     String fieldName = ctx.Identifier(1).getText();
                     Logger.getInstance().log(fieldName);
@@ -379,8 +400,19 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                 // TODO: undefined var
             }
             /* codeGenerator.insertSymbols("${" + varNode.getData().getLexem() + "}"); */
-            BasicMetaType retType = Utils.toMetaType(varNode.getData().getType());
-            retType.setValue("${" + varNode.getData().getLexem() + "}");
+            BasicMetaType retType = null;
+            if (varNode.getData().isArrayVar()) {
+                retType = new ArrayType();
+                retType.setValue("\"$(declare -p " + varNode.getData().getLexem() + ")\"");
+                /* retType.setValue(varNode.getData().getLexem() + "[@]"); */
+                 /* "$(declare -p assoc_array)"  */
+            } else  if (varNode.getData().getType() == NodeType.COMPLEXVAR) {
+                retType = new ComplexType();
+                retType.setValue("\"$(declare -p " + varNode.getData().getLexem() + ")\"");
+            } else {
+                retType = Utils.toMetaType(varNode.getData().getType());
+                retType.setValue("${" + varNode.getData().getLexem() + "}");
+            }
             return retType;
         }
 
@@ -414,6 +446,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         // TODO: not suported
         Logger.getInstance().log("not suported");
         return null;
+
         /* BasicMetaType right = visit(ctx.unaryExpression()); */
         /* if (ctx.unaryOperator() != null) { */
         /*     int terminalType = ((TerminalNode)ctx.getChild(0).getChild(0)).getSymbol().getType();  */
@@ -558,7 +591,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             BasicMetaType left = visit(ctx.logicalOrExpression());
             BasicMetaType right = visit(ctx.logicalAndExpression());
             if (left.equals(right) && left instanceof BoolType) {
-                return new BoolType(left.getValue() + " || " + right.getValue());
+                return new BoolType("$((" + left.getValue() + " || " + right.getValue()+ "))");
             } else {
                 // TODO: not boolean value
                 return null;
@@ -575,7 +608,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         BasicMetaType right = visit(ctx.inclusiveOrExpression());
         BasicMetaType left = visit(ctx.logicalAndExpression());
         if (left.equals(right) && left instanceof BoolType) {
-            return new BoolType(left.getValue() + " && " + right.getValue());
+            return new BoolType("$((" + left.getValue() + " && " + right.getValue() + "))");
         } else {
             // TODO: not boolean value
             return null;

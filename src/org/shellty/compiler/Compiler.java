@@ -20,8 +20,9 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 public class Compiler {
     private String outputFile;
     private List<String> inputFiles;
+    private String entryPoint;
 
-    public Compiler(String outputFile, List<String> inputFiles) {
+    public Compiler(String outputFile, List<String> inputFiles, String entryPoint) {
         this.outputFile = outputFile;
         this.inputFiles = inputFiles;
     }
@@ -36,6 +37,9 @@ public class Compiler {
                 } catch (IOException ex) {
                     // TODO: resolve later
                 }
+            }
+            if (entryPoint != null && entryPoint != "") {
+                outStream.println(entryPoint + " $*");
             }
         }
     }

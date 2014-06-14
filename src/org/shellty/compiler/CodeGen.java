@@ -94,9 +94,11 @@ public class CodeGen {
     public void insertParametrDeclaration(Node parametrNode, int number_parameter) {
         final String formatDeclare = "local %s %s=%s";
         if (parametrNode.getData().isArrayVar()) {
-            insertLine(String.format(formatDeclare, "-a",
-                        parametrNode.getData().getLexem(),
-                        "(\"${!" + number_parameter + "}\")"));
+           insertLine("eval \"declare -A " + parametrNode.getData().getLexem() + 
+                   "=\"${" + number_parameter + "#*=}");
+            /* insertLine(String.format(formatDeclare, "-a", */
+            /*             parametrNode.getData().getLexem(), */
+            /*             "(\"${!" + number_parameter + "}\")")); */
             return;
         }
 
