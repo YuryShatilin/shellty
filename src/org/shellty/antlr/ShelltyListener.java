@@ -53,6 +53,17 @@ public interface ShelltyListener extends ParseTreeListener {
 	void exitUnaryExpression(@NotNull ShelltyParser.UnaryExpressionContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link ShelltyParser#structFieldInitializer}.
+	 * @param ctx the parse tree
+	 */
+	void enterStructFieldInitializer(@NotNull ShelltyParser.StructFieldInitializerContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ShelltyParser#structFieldInitializer}.
+	 * @param ctx the parse tree
+	 */
+	void exitStructFieldInitializer(@NotNull ShelltyParser.StructFieldInitializerContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link ShelltyParser#designation}.
 	 * @param ctx the parse tree
 	 */

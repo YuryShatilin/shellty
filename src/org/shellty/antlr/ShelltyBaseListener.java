@@ -69,6 +69,19 @@ public class ShelltyBaseListener implements ShelltyListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterStructFieldInitializer(@NotNull ShelltyParser.StructFieldInitializerContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitStructFieldInitializer(@NotNull ShelltyParser.StructFieldInitializerContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterDesignation(@NotNull ShelltyParser.DesignationContext ctx) { }
 	/**
 	 * {@inheritDoc}

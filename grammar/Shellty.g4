@@ -193,8 +193,13 @@ structDeclaratorList
     ;
 
 structDeclarator
-    :   declarator
+    :   declarator structFieldInitializer?
     /* |   declarator? ':' constantExpression */
+    ;
+
+structFieldInitializer
+    :   '=' Constant
+    |   '=' StringLiteral
     ;
 
 enumSpecifier
@@ -341,9 +346,9 @@ switchStatement
 
 iterationStatement
     :   'while' '(' expression ')' statement
-    |   'do' statement 'while' '(' expression ')' ';'
+    /* |   'do' statement 'while' '(' expression ')' ';' */
     |   'for' '(' expression? ';' expression? ';' expression? ')' statement
-    |   'for' '(' declaration expression? ';' expression? ')' statement
+    /* |   'for' '(' declaration expression? ';' expression? ')' statement */
     ;
 
 jumpStatement

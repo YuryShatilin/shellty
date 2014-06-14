@@ -40,6 +40,13 @@ public interface ShelltyVisitor<T> extends ParseTreeVisitor<T> {
 	T visitUnaryExpression(@NotNull ShelltyParser.UnaryExpressionContext ctx);
 
 	/**
+	 * Visit a parse tree produced by {@link ShelltyParser#structFieldInitializer}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStructFieldInitializer(@NotNull ShelltyParser.StructFieldInitializerContext ctx);
+
+	/**
 	 * Visit a parse tree produced by {@link ShelltyParser#designation}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

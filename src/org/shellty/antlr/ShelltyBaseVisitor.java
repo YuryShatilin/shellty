@@ -50,6 +50,14 @@ public class ShelltyBaseVisitor<T> extends AbstractParseTreeVisitor<T> implement
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitStructFieldInitializer(@NotNull ShelltyParser.StructFieldInitializerContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitDesignation(@NotNull ShelltyParser.DesignationContext ctx) { return visitChildren(ctx); }
 
 	/**
