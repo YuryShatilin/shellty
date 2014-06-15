@@ -34,6 +34,12 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         return ret;
     }
 
+    @Override
+    public BasicMetaType visitExternalDeclaration(ShelltyParser.ExternalDeclarationContext ctx) {
+        codeGenerator.insertLine();
+        return visitChildren(ctx);
+    }
+
     private int currNumberParam = 0;
     @Override
     public BasicMetaType visitFunctionDefinition(ShelltyParser.FunctionDefinitionContext ctx) {
@@ -203,7 +209,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     @Override
     public BasicMetaType visitDeclaration(ShelltyParser.DeclarationContext ctx) {
         Logger.getInstance().log(ctx.getText());
-        if (ctx.getParent() instanceof ShelltyParser.BlockItemContext) {
+        if (ctx.typeDeclarator() != null) {
             int tokenType = ctx.typeDeclarator().getStart().getType();
             String tokenText = ctx.typeDeclarator().getText();
             /* int tokenType = ctx.declarationSpecifiers().getStart().getType(); */
@@ -240,7 +246,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             Logger.getInstance().log(varName + " is Array");
             getSemanticTree().getCurrentNode().getData().setArrayVar(true);
             if (getSemanticTree().getCurrentNode().getData().getType() == NodeType.COMPLEXVAR) {
-                throw new NotSupportedException(ctx, "arrays of complex vars");
+                throw new NotSupportedException(ctx, " arrays of complex vars");
             }
         }
 
@@ -367,7 +373,15 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                     }
                     int saveArgCount = argCount;
                     argCount = 0;
-                    BasicMetaType argResult = visit(ctx.argumentExpressionList());
+                    BasicMetaType argResult = null;
+
+                    if (ctx.argumentExpressionList() != null) {
+                        argResult = visit(ctx.argumentExpressionList());
+                    } else {
+                        argResult = new VoidType();
+                        argResult.setValue("");
+                    }
+
                     /* codeGenerator.insertSymbols("$(" + name); */
                     if (functionNode != null
                             && functionNode.getData().getCountParams() != argCount) {
@@ -386,7 +400,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                         retType = new StringType();
                     }
 
-                    if (functionNode != null) {
+                    if (functionNode != null && functionNode.getData().getReturnType() != NodeType.VOID ) {
                         retType.setValue("$(" + name + " " + argResult.getValue() + " ; echo $?)");
                     } else {
                         retType.setValue("$(" + name + " " + argResult.getValue() + " )");
@@ -657,7 +671,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                 return new BoolType("$((" + left.getValue() + " || " + right.getValue()+ "))");
             } else {
                 // TODO: not boolean value
-                throw new IllegalOperationException();
+                throw new IllegalOperationException(ctx);
             }
         }
     }
@@ -674,7 +688,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             return new BoolType("$((" + left.getValue() + " && " + right.getValue() + "))");
         } else {
             // TODO: not boolean value
-            throw new IllegalOperationException();
+            throw new IllegalOperationException(ctx);
         }
     }
 
@@ -690,7 +704,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             return new IntegerType(left.getValue() + " | " + right.getValue());
         } else {
             // TODO: not integer value
-            throw new IllegalOperationException();
+            throw new IllegalOperationException(ctx);
         }
     }
 
@@ -706,7 +720,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             return new IntegerType(left.getValue() + " ^ " + right.getValue());
         } else {
             // TODO: not integer value
-            throw new IllegalOperationException();
+            throw new IllegalOperationException(ctx);
         }
     }
 
@@ -722,7 +736,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             return new IntegerType(left.getValue() + " & " + right.getValue());
         } else {
             // TODO: not integer value
-            throw new IllegalOperationException();
+            throw new IllegalOperationException(ctx);
         }
     }
 
@@ -736,7 +750,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         BasicMetaType right = visit(ctx.relationalExpression());
         if (!left.equals(right)) {
             // TODO: invalid equality 
-            throw new IllegalOperationException();
+            throw new IllegalOperationException(ctx);
         }
         int terminalType = ((TerminalNode)ctx.getChild(1)).getSymbol().getType(); // 62 63 !=
         if (left instanceof StringType || left instanceof EnumType) {
@@ -762,7 +776,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         } else {
             // TODO: invalid equality
             Logger.getInstance().log("error " + left);
-            throw new IllegalOperationException();
+            throw new IllegalOperationException(ctx);
         }
     }
 
@@ -776,7 +790,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         BasicMetaType right = visit(ctx.shiftExpression());
         if (!left.equals(right) || !(left instanceof IntegerType)){
             // TODO: not valide relation operation
-            throw new IllegalOperationException();
+            throw new IllegalOperationException(ctx);
         }
         return new BoolType("$((" + left.getValue() + ctx.getChild(1).getText() + right.getValue() + "))");
     }
@@ -791,7 +805,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         BasicMetaType right = visit(ctx.additiveExpression());
         if (!left.equals(right)){
             // TODO: not valide relation operation
-            throw new IllegalOperationException();
+            throw new IllegalOperationException(ctx);
         }
         
         if (left instanceof IntegerType) {
@@ -801,7 +815,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         }
 
         // TODO: error
-        throw new IllegalOperationException();
+        throw new IllegalOperationException(ctx);
     }
 
     @Override
@@ -818,7 +832,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             if (!leftOperand.equals(rightOperand)) {
                 // TODO: not legal operation
                 Logger.getInstance().log("error");
-                throw new IllegalOperationException();
+                throw new IllegalOperationException(ctx);
             }
 
             BasicMetaType retType = null;
@@ -835,11 +849,11 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                 if (typeOperation == 33) {
                     retType.setValue(leftOperand.getValue() + rightOperand.getValue());
                 } else {
-                    throw new IllegalOperationException();
+                    throw new IllegalOperationException(ctx);
                 }
             } else {
                 // TODO: compiler error
-                throw new IllegalOperationException();
+                throw new IllegalOperationException(ctx);
             }
 
             return retType;
@@ -858,7 +872,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         BasicMetaType right = visit(ctx.castExpression());
         if (!left.equals(right) || !(left instanceof IntegerType)){
             // TODO: not valide relation operation
-            throw new IllegalOperationException();
+            throw new IllegalOperationException(ctx);
         }
         return new IntegerType("$((" + left.getValue() + ctx.getChild(1).getText() + right.getValue() + "))");
     }
@@ -904,7 +918,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         if (!inCycle) {
             // TODO: error
             Logger.getInstance().log("error");
-            throw new IllegalOperationException();
+            throw new IllegalOperationException(ctx);
         }
         codeGenerator.insertLine(ctx.getChild(0).getText());
         
@@ -947,11 +961,6 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
 
         return null;
     }
-
-    /* @Override */
-    /* public BasicMetaType visitSwitchStatement(ShelltyParser.SwitchStatementContext ctx) { */
-    /*     return null; */
-    /* } */
 
     @Override
     public BasicMetaType visitLabeledStatement(ShelltyParser.LabeledStatementContext ctx) {

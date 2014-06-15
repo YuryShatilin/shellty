@@ -48,7 +48,7 @@ public class CodeGen {
         String varName = varNode.getData().getLexem();
         Logger.getInstance().log(varNode.getData());
         if (varNode.getData().isArrayVar()) {
-            insertLine("local -A " + varName);
+            insertLine("declare -A " + varName);
             return;    
         }
        
@@ -58,18 +58,18 @@ public class CodeGen {
         case ENUMVAR:
         case STRING:
             if (!varNode.getData().getValue().isEmpty()) {
-                insertLine(String.format("local  %s=%s", varName, 
+                insertLine(String.format("declare %s=%s", varName, 
                             varNode.getData().getValue()));
             } else {
-                insertLine(String.format("local  %s", varName));
+                insertLine(String.format("declare %s", varName));
             }
             return;
         case INTEGER:
             if (!varNode.getData().getValue().isEmpty()) {
-                insertLine(String.format("local -i %s=%s", varName, 
+                insertLine(String.format("declare -i %s=%s", varName, 
                             varNode.getData().getValue()));
             } else {
-                insertLine(String.format("local -i %s", varName));
+                insertLine(String.format("declare -i %s", varName));
             }
             return;
         default:

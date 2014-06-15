@@ -15,9 +15,13 @@ public abstract class ShelltyException extends ParseCancellationException {
     }
 
     public final String generateMessage() {
-        return "line " + context.getStart().getLine() +
-            ":" + context.getStart().getCharPositionInLine() +
-            "\t" + getErrorMessage();
+        if (context != null) {
+            return "line " + context.getStart().getLine() +
+                ":" + context.getStart().getCharPositionInLine() +
+                "\t" + getErrorMessage();
+        } else {
+            return getErrorMessage();
+        }
     }
 
     public abstract String getErrorMessage();
