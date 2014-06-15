@@ -12,7 +12,7 @@ public class RedefinitionException extends ShelltyException {
 
     String name = "";
     @Override
-    public String getMessage() {
+    public String getErrorMessage() {
         return "redefinition declaration " + name;
     }
 }

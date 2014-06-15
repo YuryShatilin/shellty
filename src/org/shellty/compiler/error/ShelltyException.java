@@ -17,10 +17,10 @@ public abstract class ShelltyException extends ParseCancellationException {
     public final String generateMessage() {
         return "line " + context.getStart().getLine() +
             ":" + context.getStart().getCharPositionInLine() +
-            "\t" + getMessage();
+            "\t" + getErrorMessage();
     }
 
-    public abstract String getMessage();
+    public abstract String getErrorMessage();
 
     public ParserRuleContext getContext() {
         return context;

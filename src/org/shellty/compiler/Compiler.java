@@ -27,6 +27,7 @@ public class Compiler {
     public Compiler(String outputFile, List<String> inputFiles, String entryPoint) {
         this.outputFile = outputFile;
         this.inputFiles = inputFiles;
+        this.entryPoint = entryPoint;
     }
 
     public void launch() throws FileNotFoundException {

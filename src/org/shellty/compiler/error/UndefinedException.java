@@ -17,7 +17,7 @@ public class UndefinedException extends ShelltyException {
     public String name = "";
 
     @Override
-    public String getMessage() {
+    public String getErrorMessage() {
         return "undefined declaration " + name;
     }
 }

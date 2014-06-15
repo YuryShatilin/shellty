@@ -11,8 +11,9 @@ public class SimpleErrorException extends ShelltyException {
     }
 
     private String message = "";
+
     @Override
-    public String getMessage() {
+    public String getErrorMessage() {
         return message;
     }
 }

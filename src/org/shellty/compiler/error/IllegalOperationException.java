@@ -15,7 +15,7 @@ public class IllegalOperationException extends ShelltyException {
 
 
     @Override
-    public String getMessage() {
+    public String getErrorMessage() {
         return "illegal operation";
     }
 }
