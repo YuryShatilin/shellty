@@ -19,6 +19,6 @@ public class NotSupportedException extends ShelltyException {
 
     @Override
     public String getMessage() {
-        return "addMessage " + addMessage;
+        return "Not supported " + addMessage;
     }
 }
