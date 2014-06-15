@@ -77,9 +77,6 @@ public class CodeGen {
         }
 
         Node structNode = varNode.getRightNode();
-        if (structNode == null) {
-            // TODO: generate exception
-        }
 
         List<Node> fields = Tree.getFieldsStruction(structNode);
         String fieldsString = "";

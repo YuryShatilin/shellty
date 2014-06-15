@@ -89,13 +89,18 @@ public class Launcher {
         Logger.getInstance().setLocked(!debug);
         Logger.getInstance().setOutStream(new PrintStream("out.log"));
 
-        /* System.out.println("out file " + outFileName); */
+        System.out.println("out file " + outFileName);
+        System.out.println("ep " + entryPoint);
 
-        /* for (String arg : arguments) { */
-        /*     System.out.println(arg); */
-        /* } */
+        for (String arg : arguments) {
+            System.out.println(arg);
+        }
 
-        Compiler compiler = new Compiler(outFileName, arguments);
+        if (entryPoint == null) {
+            entryPoint = "";
+        }
+
+        Compiler compiler = new Compiler(outFileName, arguments, entryPoint);
 
         compiler.launch();
     }
