@@ -1,16 +1,11 @@
 package org.shellty.compiler;
 
+import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.shellty.antlr.ShelltyBaseVisitor;
 import org.shellty.antlr.ShelltyParser;
-import org.shellty.compiler.semantic.Meta.ArrayType;
-import org.shellty.compiler.semantic.Meta.BasicMetaType;
-import org.shellty.compiler.semantic.Meta.BoolType;
-import org.shellty.compiler.semantic.Meta.ComplexType;
-import org.shellty.compiler.semantic.Meta.EnumType;
-import org.shellty.compiler.semantic.Meta.IntegerType;
-import org.shellty.compiler.semantic.Meta.StringType;
-import org.shellty.compiler.semantic.Meta.VoidType;
+import org.shellty.compiler.error.*;
+import org.shellty.compiler.semantic.Meta.*;
 import org.shellty.compiler.semantic.Node;
 import org.shellty.compiler.semantic.NodeData;
 import org.shellty.compiler.semantic.NodeData.NodeType;
@@ -32,35 +27,12 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     }
 
     @Override
-    public BasicMetaType visitTerminal(TerminalNode terminal) {
-        return null;
-    }
-
-    @Override
     public BasicMetaType visitCompoundStatement(ShelltyParser.CompoundStatementContext ctx) {
         codeGenerator.incIndent();
         BasicMetaType ret = visitChildren(ctx);
         codeGenerator.decIndent();
         return ret;
     }
-
-    /* @Override */
-    /* public BasicMetaType visitStatement(ShelltyParser.StatementContext ctx) { */
-    /*     if (ctx.labeledStatement() != null) { */
-    /*         if (switchType == null) { */
-    /*             // TODO: error case statement */
-    /*             Logger.getInstance().log("error case statement"); */
-    /*             return null; */
-    /*         } */
-    /*         visit(ctx.labeledStatement()); */
-    /*     } */
-    /*     if (switchType != null) { */
-    /*         // TODO: error switch context  */
-    /*         Logger.getInstance().log("error"); */
-    /*         return null; */
-    /*     } */
-    /*     return visitChildren(ctx); */
-    /* } */
 
     private int currNumberParam = 0;
     @Override
@@ -69,7 +41,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                 ctx.typeDeclarator().getText(), getSemanticTree());
 
         if (returnType == NodeType.COMPLEXVAR) {
-            // TODO: return complex var not supported
+            throw new NotSupportedException(ctx, "return complex var");
         }
 
         Node retNode = getSemanticTree().functionInclude(ctx.Identifier().getText(), returnType);
@@ -123,8 +95,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         if (ctx.Constant() != null && lastVar.getData().getType() != NodeType.INTEGER ||
             ctx.StringLiteral() != null && lastVar.getData().getType() != NodeType.STRING) {
             // TODO: error init
-            Logger.getInstance().log("error");
-            return null;
+            throw new IllegalOperationException(ctx);
         }
 
         lastVar.getData().setValue(ctx.getChild(1).getText());
@@ -152,6 +123,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
 
         if (type != NodeType.INTEGER && type != NodeType.STRING) {
             // TODO: struct contents integer or string only
+            throw new NotSupportedException(ctx, "");
         }
 
         saveType = type;
@@ -241,7 +213,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         String varName = ctx.declarator().directDeclarator().Identifier().getText();
         if (!getSemanticTree().checkDuplicate(varName)) {
             // TODO: throw redefinition error
-            return null;
+            throw new RedefinitionException(ctx, varName);
         }
         
 
@@ -258,13 +230,13 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                     varNode.getData().getType() != NodeType.STRING &&
                     varNode.getData().getType() != NodeType.ENUMVAR ) {
                 // TODO: error init string and integer only
-                return null;
+                throw new NotSupportedException(ctx, ". Only integer, string and enum type init");
             }
             BasicMetaType in = visit(ctx.initializer());
             if (varNode.getData().getType() != NodeType.ENUMVAR) {
                 if (!Utils.toMetaType(varNode.getData().getType()).equals(in)) {
                     // TODO: error init
-                    return null;
+                    throw new IllegalOperationException(ctx);
                 }
             } else {
                 EnumType etype = new EnumType("",varNode.getRightNode());
@@ -310,8 +282,8 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     public BasicMetaType visitArgumentExpressionList(ShelltyParser.ArgumentExpressionListContext ctx) {
         if (functionNode != null && argCount > functionNode.getData().getCountParams()) {
             // TODO: mismatch functions arguments 
-            Logger.getInstance().log("error");
-            return null;
+            throw new SimpleErrorException(ctx, "mismatch arguments function " +
+                    functionNode.getData().getLexem());
         }
 
         BasicMetaType arguments = new VoidType();
@@ -330,8 +302,8 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                     (parametrNode.getData().getType() == NodeType.INTEGER 
                     && argument instanceof BoolType)) {
                 // TODO: mismathc argument function 
-                Logger.getInstance().log("error 2");
-                return null;
+                throw new SimpleErrorException(ctx, "mismatch arguments function " +
+                        functionNode.getData().getLexem());
             }
         }
 
@@ -356,7 +328,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                 return expr;
             } else {
                 // TODO: error. not supported
-                return null;
+                throw new IllegalOperationException(ctx);
             }
             /* return visit(ctx.expression()); */
         }
@@ -379,9 +351,10 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                     if (functionNode != null
                             && functionNode.getData().getCountParams() != argCount) {
                         // TODO: arguments count mismatch
-                        Logger.getInstance().log("err " + functionNode.getData().getCountParams() + " " 
-                                + argCount);
-                        return null;
+                        throw new IllegalOperationException();
+                        /* Logger.getInstance().log("err " + functionNode.getData().getCountParams() + " "  */
+                        /*         + argCount); */
+                        /* return null; */
                     }
                     argCount = saveArgCount;
                     /* codeGenerator.insertSymbols(")"); */
@@ -406,9 +379,11 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                 case 23:{ // element array
                     if (targetNode == null) {
                         // TODO: error not found var
+                        throw new UndefinedException(ctx, ctx.Identifier(0).getText());
                     }
                     if (!targetNode.getData().isArrayVar()) {
                         // TODO: var is not array
+                        throw new SimpleErrorException(ctx, ctx.Identifier(0).getText() + " is not array");
                     }
                     /* codeGenerator.insertSymbols("${" + name +"["); */
                     BasicMetaType index = visit(ctx.expression());
@@ -423,9 +398,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                 case 65:{ // struct field
                     if (targetNode == null) {
                         // TODO: error not found var
-                    }
-                    if (targetNode.getData().getType() == NodeType.COMPLEXVAR) {
-                        // TODO: var struct
+                        throw new UndefinedException(ctx, ctx.Identifier(0).getText());
                     }
                     String fieldName = ctx.Identifier(1).getText();
                     Logger.getInstance().log(fieldName);
@@ -452,6 +425,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             Node varNode = getSemanticTree().findUp(ctx.Identifier(0).getText());
             if (varNode == null) {
                 // TODO: undefined var
+                throw new UndefinedException(ctx, ctx.Identifier(0).getText());
             }
             Logger.getInstance().log(ctx.Identifier(0).getText());
             Logger.getInstance().log(varNode.getData());
@@ -507,8 +481,9 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         }
 
         // TODO: not suported
-        Logger.getInstance().log("not suported");
-        return null;
+        throw new NotSupportedException(ctx, "unary operation");
+        /* Logger.getInstance().log("not suported"); */
+        /* return null; */
 
         /* BasicMetaType right = visit(ctx.unaryExpression()); */
         /* if (ctx.unaryOperator() != null) { */
@@ -541,12 +516,12 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             BasicMetaType rightType = visit(ctx.castExpression());
             if (rightType instanceof ComplexType) {
                 // TODO: error cast
-                return null;
+                throw new IllegalOperationException();
             }
 
             if (rightType instanceof EnumType) {
                 // TODO: error cast
-                return null;
+                throw new IllegalOperationException();
             }
 
             if (terminal.getSymbol().getType() == ShelltyParser.Int) {
@@ -571,7 +546,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         BasicMetaType right = visit(ctx.conditionalExpression());
         if (!left.equals(right)) {
             // TODO: get erorr
-            return null;
+            throw new IllegalOperationException();
         }
         left.setValue(left.getValue() + "=" + right.getValue());
         return left;
@@ -584,13 +559,15 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             TerminalNode terminal = (TerminalNode)ctx.getChild(1);            
             String name = ctx.Identifier(0).getText();
             Node targetNode = getSemanticTree().findUp(name);
+            if (targetNode == null) {
+                // TODO: error not found var
+                throw new UndefinedException(ctx, name);
+            }
             switch (terminal.getSymbol().getType()) {
                 case 23:{ // element array
-                    if (targetNode == null) {
-                        // TODO: error not found var
-                    }
                     if (!targetNode.getData().isArrayVar()) {
                         // TODO: var is not array
+                        throw new SimpleErrorException(ctx, ctx.Identifier(0).getText() + " is not array");
                     }
                     /* codeGenerator.insertSymbols("${" + name +"["); */
                     BasicMetaType index = visit(ctx.expression());
@@ -600,11 +577,9 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                     return retType;
                 }
                 case 65:{ // struct field
-                    if (targetNode == null) {
-                        // TODO: error not found var
-                    }
                     if (targetNode.getData().getType() == NodeType.COMPLEXVAR) {
                         // TODO: var is not array
+                        throw new SimpleErrorException(ctx, ctx.Identifier(0).getText() + " is not complex var");
                     }
                     String fieldName = ctx.Identifier(1).getText();
                     Logger.getInstance().log(fieldName);
@@ -619,6 +594,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                     }
                     if (varNode == null) {
                         // TODO: field not found 
+                        throw new UndefinedException(ctx, fieldName);
                     }
                     /* codeGenerator.insertSymbols("${" + name + "[" + fieldName + "]}"); */
                     BasicMetaType retType = Utils.toMetaType(varNode.getData().getType());
@@ -630,6 +606,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             Node varNode = getSemanticTree().findUp(ctx.Identifier(0).getText());
             if (varNode == null) {
                 // TODO: undefined var
+                throw new UndefinedException(ctx, ctx.Identifier(0).getText());
             }
             /* codeGenerator.insertSymbols("${" + varNode.getData().getLexem() + "}"); */
             BasicMetaType retType = Utils.toMetaType(varNode.getData().getType());
@@ -659,7 +636,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                 return new BoolType("$((" + left.getValue() + " || " + right.getValue()+ "))");
             } else {
                 // TODO: not boolean value
-                return null;
+                throw new IllegalOperationException();
             }
         }
     }
@@ -676,7 +653,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             return new BoolType("$((" + left.getValue() + " && " + right.getValue() + "))");
         } else {
             // TODO: not boolean value
-            return null;
+            throw new IllegalOperationException();
         }
     }
 
@@ -692,7 +669,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             return new IntegerType(left.getValue() + " | " + right.getValue());
         } else {
             // TODO: not integer value
-            return null;
+            throw new IllegalOperationException();
         }
     }
 
@@ -708,7 +685,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             return new IntegerType(left.getValue() + " ^ " + right.getValue());
         } else {
             // TODO: not integer value
-            return null;
+            throw new IllegalOperationException();
         }
     }
 
@@ -724,7 +701,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             return new IntegerType(left.getValue() + " & " + right.getValue());
         } else {
             // TODO: not integer value
-            return null;
+            throw new IllegalOperationException();
         }
     }
 
@@ -738,7 +715,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         BasicMetaType right = visit(ctx.relationalExpression());
         if (!left.equals(right)) {
             // TODO: invalid equality 
-            return null;
+            throw new IllegalOperationException();
         }
         int terminalType = ((TerminalNode)ctx.getChild(1)).getSymbol().getType(); // 62 63 !=
         if (left instanceof StringType || left instanceof EnumType) {
@@ -764,7 +741,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         } else {
             // TODO: invalid equality
             Logger.getInstance().log("error " + left);
-            return null;
+            throw new IllegalOperationException();
         }
     }
 
@@ -778,7 +755,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         BasicMetaType right = visit(ctx.shiftExpression());
         if (!left.equals(right) || !(left instanceof IntegerType)){
             // TODO: not valide relation operation
-            return null;
+            throw new IllegalOperationException();
         }
         return new BoolType("$((" + left.getValue() + ctx.getChild(1).getText() + right.getValue() + "))");
     }
@@ -793,7 +770,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         BasicMetaType right = visit(ctx.additiveExpression());
         if (!left.equals(right)){
             // TODO: not valide relation operation
-            return null;
+            throw new IllegalOperationException();
         }
         
         if (left instanceof IntegerType) {
@@ -803,7 +780,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         }
 
         // TODO: error
-        return null;
+        throw new IllegalOperationException();
     }
 
     @Override
@@ -820,7 +797,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             if (!leftOperand.equals(rightOperand)) {
                 // TODO: not legal operation
                 Logger.getInstance().log("error");
-                return null;
+                throw new IllegalOperationException();
             }
 
             BasicMetaType retType = null;
@@ -837,12 +814,11 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                 if (typeOperation == 33) {
                     retType.setValue(leftOperand.getValue() + rightOperand.getValue());
                 } else {
-                    // TODO: not legal operation
-                    return null;
+                    throw new IllegalOperationException();
                 }
             } else {
                 // TODO: compiler error
-                return null;
+                throw new IllegalOperationException();
             }
 
             return retType;
@@ -861,7 +837,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         BasicMetaType right = visit(ctx.castExpression());
         if (!left.equals(right) || !(left instanceof IntegerType)){
             // TODO: not valide relation operation
-            return null;
+            throw new IllegalOperationException();
         }
         return new IntegerType("$((" + left.getValue() + ctx.getChild(1).getText() + right.getValue() + "))");
     }
@@ -873,7 +849,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         }
         // TODO: error not suported
         Logger.getInstance().log("not support");
-        return null;
+        throw new NotSupportedException(ctx, " postfix operation");
         /* BasicMetaType left = visit(ctx.postfixExpression()); */
         /* if (left instanceof IntegerType) { */
         /*     return new IntegerType("$((" + left.getValue() + ctx.getChild(1).getText() + "))"); */
@@ -895,7 +871,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
                     return null;
                 } else {
                     // TODO: error not valid return expression
-                    return null;
+                    throw new SimpleErrorException(ctx, " wrong return expression");
                 }
             } 
             BasicMetaType result = visit(ctx.expression());
@@ -907,7 +883,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         if (!inCycle) {
             // TODO: error
             Logger.getInstance().log("error");
-            return null;
+            throw new IllegalOperationException();
         }
         codeGenerator.insertLine(ctx.getChild(0).getText());
         
@@ -968,7 +944,7 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
             if (!switchType.equals(expr)) {
                 // TODO: error
                 Logger.getInstance().log("error " + expr);
-                return null;
+                throw new SimpleErrorException(ctx, " wrong case expression");
             }
             codeGenerator.insertLine(expr.getValue() + ")");
         }
@@ -1048,9 +1024,14 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         if (ctx.conditionalExpression() == null) {
             // TODO: not suppoted
             Logger.getInstance().log("not suppoted");
-            return null;
+            throw new NotSupportedException(ctx, " struct initilizer not supported");
         }
         return visit(ctx.conditionalExpression());
+    }
+
+    @Override
+    public BasicMetaType visitErrorNode(ErrorNode error) {
+        throw new IllegalOperationException();
     }
 
     public Tree getSemanticTree() {

@@ -1,8 +1,9 @@
 package org.shellty.compiler.error;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
-public abstract class ShelltyException extends Exception {
+public abstract class ShelltyException extends ParseCancellationException {
     private static final long serialVersionUID = 1L;
     private ParserRuleContext context = null;
 
@@ -14,8 +15,8 @@ public abstract class ShelltyException extends Exception {
     }
 
     public final String generateMessage() {
-        return "line:" + context.getStart().getLine() +
-            ",p:" + context.getStart().getCharPositionInLine() +
+        return "line " + context.getStart().getLine() +
+            ":" + context.getStart().getCharPositionInLine() +
             "\t" + getMessage();
     }
 
