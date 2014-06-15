@@ -33,7 +33,7 @@ public class Tree {
 
 
     public Node structInclude(String structName) {
-        if (inStruct()) {
+        if (inStruct() || !checkDuplicate(structName)) {
             // TODO: generate error
             return null;
         }
@@ -54,7 +54,7 @@ public class Tree {
     }
 
     public Node functionInclude(String functionName, NodeData.NodeType returnType) {
-        if (inStruct()) {
+        if (inStruct() || !checkDuplicate(functionName)) {
             // TODO: generate error
             return null;
         }
@@ -133,10 +133,12 @@ public class Tree {
 
     public boolean checkDuplicate(String name) {
         Node curr = getCurrentNode();
+        Logger.getInstance().log("check name " + name);
         while (curr != null) {
-            if (curr.getData().getLexem() == name) {
+            if (curr.getData().getLexem().equals(name)) {
                 return false;
             }
+            Logger.getInstance().log(curr.getData().getLexem());
             if (curr.getParentNode() != null
                     && curr.getParentNode().getRightNode() == curr) {
                 break;
@@ -172,10 +174,10 @@ public class Tree {
         return false;
     }
 
-    public void enumInclude(String enumName) {
-        if (inStruct()) {
+    public Node enumInclude(String enumName) {
+        if (inStruct() || !checkDuplicate(enumName)) {
             // TODO: generate error
-            return;
+            return null;
         }
 
         Node node = new Node(null, null, mCurrentNode);
@@ -188,6 +190,7 @@ public class Tree {
         /* node.setRightNode(rightNode); */
 
         mCurrentNode = node;
+        return node;
     }
 
     public static List<Node> getFieldsStruction(Node structNode) {

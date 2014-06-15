@@ -45,6 +45,9 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         }
 
         Node retNode = getSemanticTree().functionInclude(ctx.Identifier().getText(), returnType);
+        if (retNode == null) {
+            throw new RedefinitionException(ctx, ctx.Identifier().getText());
+        }
 
         codeGenerator.insertLine(String.format("function %s () {\n :", ctx.Identifier().getText()));
 
@@ -68,6 +71,10 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         Node varNode = getSemanticTree().varInclude(ctx.Identifier().getText(), ctx.typeDeclarator().getStart().getType(),
                 ctx.typeDeclarator().getText());
 
+        if (varNode == null) {
+            throw new NotSupportedException(ctx, "");
+        }
+
         if (ctx.getChildCount() > 2) {
             varNode.getData().setArrayVar(true);
         }
@@ -83,6 +90,9 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         String structName = ctx.Identifier().getText();
 
         Node retNode = semanticTree.structInclude(structName);
+        if (retNode == null) {
+            throw new NotSupportedException(ctx, "");
+        }
         visit(ctx.getChild(3));
 
         semanticTree.setCurrentNode(retNode);
@@ -136,7 +146,10 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     @Override
     public BasicMetaType visitStructDeclarator(ShelltyParser.StructDeclaratorContext ctx) {
         /* Logger.getInstance().log(ctx.getChild(0).getText()); */
-        semanticTree.varInclude(ctx.getChild(0).getText(), saveType);
+        Node varNode = semanticTree.varInclude(ctx.getChild(0).getText(), saveType);
+        if (varNode == null) {
+            throw new NotSupportedException(ctx, "");
+        }
         return visitChildren(ctx);
     }
 
@@ -148,7 +161,9 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     @Override
     public BasicMetaType visitEnumSpecifier(ShelltyParser.EnumSpecifierContext ctx) {
         String enumName = ctx.Identifier().getText();
-        getSemanticTree().enumInclude(enumName);
+        if (getSemanticTree().enumInclude(enumName) == null) {
+            throw new NotSupportedException(ctx, "");
+        }
 
         codeGenerator.insertSymbols(enumName + "=(");
 
@@ -164,7 +179,10 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
     @Override
     public BasicMetaType visitEnumerator(ShelltyParser.EnumeratorContext ctx) {
         String val = ctx.enumerationConstant().getText();
-        getSemanticTree().varInclude(val, NodeType.ENUMNAME);
+        Node varNode = getSemanticTree().varInclude(val, NodeType.ENUMNAME);
+        if (varNode == null) {
+            throw new NotSupportedException(ctx, "");
+        }
 
         codeGenerator.insertStringLiteral(val);
         codeGenerator.insertSymbols(" ");
