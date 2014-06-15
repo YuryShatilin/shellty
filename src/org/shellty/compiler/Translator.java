@@ -239,6 +239,9 @@ class Translator extends ShelltyBaseVisitor<BasicMetaType> {
         if (ctx.declarator().directDeclarator().getChildCount() > 1) {
             Logger.getInstance().log(varName + " is Array");
             getSemanticTree().getCurrentNode().getData().setArrayVar(true);
+            if (getSemanticTree().getCurrentNode().getData().getType() == NodeType.COMPLEXVAR) {
+                throw new NotSupportedException(ctx, "arrays of complex vars");
+            }
         }
 
 
